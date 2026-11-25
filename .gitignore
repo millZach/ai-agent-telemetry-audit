@@ -1,0 +1,6 @@
+repos/
+prescan/*.txt
+__pycache__/
+*.tmp
+.DS_Store
+Thumbs.db

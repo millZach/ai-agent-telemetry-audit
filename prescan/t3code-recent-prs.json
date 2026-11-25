@@ -1,0 +1,838 @@
+{
+  "baseline_sha": "4c2e2b373433b729b4080f8bab42aa0754b63304",
+  "live_sha": "2b84f4862ce7320bdff28cef88d3ed8d0f23797e",
+  "compare": {
+    "status": "ahead",
+    "ahead_by": 152,
+    "behind_by": 0,
+    "total_commits": 152,
+    "telemetry_related_commits": [
+      {
+        "sha": "1a01d7ee6f78a3da27810202a3151ff815adc4d4",
+        "date": "2026-11-24T17:18:55Z",
+        "message": "fix(server): Claude asks to sign in to each MCP server once per thread (#42263)"
+      },
+      {
+        "sha": "ddaba13471790c4bc0f8c0f9bb6aafb3e77b27be",
+        "date": "2026-11-24T18:19:39Z",
+        "message": "fix(server): t3_project_update saves the default model where Settings reads it (#42297)"
+      },
+      {
+        "sha": "a149bdc4f6f0619ad3c914a9abca785bbc88748a",
+        "date": "2026-11-24T18:41:34Z",
+        "message": "fix(web): Voice Models language menu resets its search filter on close (#42321)"
+      },
+      {
+        "sha": "4eccb0ecfcc12655f3231203f766c56b05692170",
+        "date": "2026-11-24T19:57:21Z",
+        "message": "fix(relay): traces no longer record callers' IP addresses or user agents (#42380)"
+      },
+      {
+        "sha": "3380585e1bfcc99634ee78edf02624d396886fd2",
+        "date": "2026-11-24T20:13:03Z",
+        "message": "feat(relay): delete a user's relay data when Clerk deletes the user (#42285)"
+      },
+      {
+        "sha": "482e197faeb5dfef69582514bf14769fa019a71a",
+        "date": "2026-11-24T20:19:23Z",
+        "message": "fix(mobile): analytics uses its own random device id (#42394)"
+      },
+      {
+        "sha": "3ba003be06afbd32a75c69a5cf38fb9719695b70",
+        "date": "2026-11-24T20:24:10Z",
+        "message": "fix(desktop): Windows desktop applies the saved user telemetry opt-out (#42376)"
+      },
+      {
+        "sha": "84e4264bb347e36e97f6c3bd95d666eecfa12e07",
+        "date": "2026-11-24T20:46:02Z",
+        "message": "fix(server): analytics no longer reads or sends Codex and Claude account IDs (#42299)"
+      },
+      {
+        "sha": "796103f4b792847561c65c921e82375a29d016c9",
+        "date": "2026-11-24T20:52:12Z",
+        "message": "fix(server): agent feedback no longer links to the install (#42398)"
+      },
+      {
+        "sha": "dc7b8802b84fd658d4be59eec0d3773dfd10aaa2",
+        "date": "2026-11-24T21:12:51Z",
+        "message": "fix(connect): respect relay tracing opt-outs and remove machine details (#42356)"
+      },
+      {
+        "sha": "f67cbcd31781ef2b845ac88a3b552a35ddec149e",
+        "date": "2026-11-24T21:19:20Z",
+        "message": "fix(cursor): release checkpoint memory with SDK 1.5.0 (#42404)"
+      },
+      {
+        "sha": "7e269e044bfc27ffe0ac81c194d0139b173b7d50",
+        "date": "2026-11-24T21:29:31Z",
+        "message": "fix(server): MCP tool analytics send only closed error codes and delivery values (#42397)"
+      },
+      {
+        "sha": "c9ba6b4b6e7415e058780fa9176deed2ae642eca",
+        "date": "2026-11-24T21:35:48Z",
+        "message": "fix(relay): account deletion drops a live host's tunnel connectors (#42430)"
+      },
+      {
+        "sha": "924d9c1fff632ade9ffcd60cc47a0e62a6a241a5",
+        "date": "2026-11-24T21:48:39Z",
+        "message": "feat(projects): worktree layout commands run only once a person approves them (#42386)"
+      },
+      {
+        "sha": "2c0527b8d0492f2eb3a3d651f2ff587f5400bfc9",
+        "date": "2026-11-24T21:57:02Z",
+        "message": "fix(server): removing a thread folder keeps a checkout that gained work while the project's remove command waited (#42432)"
+      },
+      {
+        "sha": "dfa73216cc6ffb1e765b1eb562af07beb99be0cf",
+        "date": "2026-11-24T22:20:13Z",
+        "message": "fix(web): search results show the matched lines (#42429)"
+      },
+      {
+        "sha": "30f141e2e70cefdd932e9d8d5a04bf38821b1589",
+        "date": "2026-11-24T22:26:30Z",
+        "message": "fix(server): relay-delivered webhook runs no longer export their spans to the relay (#42450)"
+      },
+      {
+        "sha": "5ac27b400716cc099c14363291fd0c249115116a",
+        "date": "2026-11-24T22:48:03Z",
+        "message": "feat(workflows): questions have kinds and runs have tags, and Needs you filters by kind (#42008)"
+      },
+      {
+        "sha": "f020e4ae8dfd9a35ef7da3e4ae365aa7be9946ed",
+        "date": "2026-11-24T22:51:38Z",
+        "message": "fix(server): anonymous analytics events go out in their own request (#42466)"
+      },
+      {
+        "sha": "49ef15662455af203c03cf2000ecbbf13d904583",
+        "date": "2026-11-24T22:51:49Z",
+        "message": "fix(server): relay tracing waits for the desktop shell environment before exporting (#42464)"
+      },
+      {
+        "sha": "2a11e765618336422d6bf0280c3423b6ff332cc6",
+        "date": "2026-11-24T22:51:57Z",
+        "message": "fix(relay): Android pushes send a per-device hash instead of the account's user id to Google (#42459)"
+      },
+      {
+        "sha": "78de041d480615ba8b992188b6b4a2323c336fdb",
+        "date": "2026-11-24T22:54:26Z",
+        "message": "fix: settle and snooze threads while their machine is offline (#24917)"
+      },
+      {
+        "sha": "6b3899f224947178088ca97ec9907e681807f7da",
+        "date": "2026-11-24T23:10:38Z",
+        "message": "fix(server): analytics report custom models as custom:<provider>, not their names (#42465)"
+      },
+      {
+        "sha": "1a11aed1f81160f8ccd6df865712416be1a6016a",
+        "date": "2026-11-24T23:14:05Z",
+        "message": "fix(web): workflow steps on a linked environment open their thread (#41614)"
+      },
+      {
+        "sha": "5d02075446d2058c8a12fedf4110ec1cc0234551",
+        "date": "2026-11-24T23:14:32Z",
+        "message": "fix(server): Antigravity model refresh explains why setup is broken (#42475)"
+      },
+      {
+        "sha": "2940ff33ad7f138f324d98bc393d22b0b519696e",
+        "date": "2026-11-25T00:22:03Z",
+        "message": "fix(web): MCP apps run only when their document hands over its bridge (#42504)"
+      },
+      {
+        "sha": "ceb20555b37b8ca6d1c6681e0d36fde076ebed58",
+        "date": "2026-11-25T00:25:01Z",
+        "message": "ci(mobile): fork previews wait for an approval that names the commit (#42503)"
+      },
+      {
+        "sha": "38adba87b3f023c1a3935173e4afe49fb1302b1b",
+        "date": "2026-11-25T01:12:12Z",
+        "message": "fix(server): Claude no longer shows \"Connecting\" on every turn (#42508)"
+      },
+      {
+        "sha": "5f3cdab9b77b7e922bc51e63cf5fa04c4b523631",
+        "date": "2026-11-25T01:15:00Z",
+        "message": "fix(acp-registry): refresh stale registry index and supersede stale live session models (#42456)"
+      },
+      {
+        "sha": "5e3bc17587a48b1d1de02e91d566acde3ca41863",
+        "date": "2026-11-25T01:40:39Z",
+        "message": "fix(server): Claude instances that share a home through a symlink keep the session on switch (#42509)"
+      },
+      {
+        "sha": "4065801a00cf8604f8970914afc1b188a7e4bc2c",
+        "date": "2026-11-25T02:08:54Z",
+        "message": "fix(web): pressing the Usage shortcut again closes Usage (#30459)"
+      },
+      {
+        "sha": "39a8d1f33e48b420b22c9ab6cb50523d83c64a04",
+        "date": "2026-11-25T02:13:26Z",
+        "message": "fix(scenarios): editor and no-model shims run on Windows (#42533)"
+      },
+      {
+        "sha": "f46f17e46f1fcd2b7ba9985e043170388fa4fb21",
+        "date": "2026-11-25T02:24:40Z",
+        "message": "fix(web): small buttons leave room between icon and label (#37358)"
+      },
+      {
+        "sha": "66a4d99d1d0dccf6882cffb299a773498141afb3",
+        "date": "2026-11-25T02:36:20Z",
+        "message": "fix(web): git action progress text centers with its spinner (#37215)"
+      },
+      {
+        "sha": "62e8042b2124a8fc0699e0cee3dbac5ff5640b7c",
+        "date": "2026-11-25T02:48:39Z",
+        "message": "feat(search): a query in double quotes finds its words together (#37700)"
+      },
+      {
+        "sha": "7be3a767cc0f4de7d3066fb386bbf64893584e91",
+        "date": "2026-11-25T04:33:24Z",
+        "message": "feat(server): workflow questions take described choices, required reasons, links, and keep who answered (#42515)"
+      }
+    ],
+    "telemetry_related_files": [
+      {
+        "filename": ".github/workflows/deploy-relay.yml",
+        "status": "modified",
+        "changes": 2
+      },
+      {
+        "filename": ".github/workflows/relay-preview.yml",
+        "status": "modified",
+        "changes": 2
+      },
+      {
+        "filename": "apps/desktop/src/shell/DesktopShellEnvironment.test.ts",
+        "status": "modified",
+        "changes": 18
+      },
+      {
+        "filename": "apps/desktop/src/shell/DesktopShellEnvironment.ts",
+        "status": "modified",
+        "changes": 10
+      },
+      {
+        "filename": "apps/mobile/src/features/diagnostics/SettingsDiagnosticsRouteScreen.tsx",
+        "status": "modified",
+        "changes": 22
+      },
+      {
+        "filename": "apps/mobile/src/features/observability/tracing.test.ts",
+        "status": "modified",
+        "changes": 14
+      },
+      {
+        "filename": "apps/mobile/src/features/observability/tracing.ts",
+        "status": "modified",
+        "changes": 21
+      },
+      {
+        "filename": "apps/mobile/src/features/settings/SettingsEnvironmentDetailRouteScreen.tsx",
+        "status": "modified",
+        "changes": 2
+      },
+      {
+        "filename": "apps/mobile/src/features/threads/mcpAppRelayDocument.test.ts",
+        "status": "added",
+        "changes": 97
+      },
+      {
+        "filename": "apps/mobile/src/features/threads/mcpAppRelayDocument.ts",
+        "status": "added",
+        "changes": 27
+      },
+      {
+        "filename": "apps/mobile/src/features/usage/UsageLimitsPooled.tsx",
+        "status": "modified",
+        "changes": 27
+      },
+      {
+        "filename": "apps/server/src/cloud/relayTracing.test.ts",
+        "status": "modified",
+        "changes": 59
+      },
+      {
+        "filename": "apps/server/src/cloud/relayTracing.ts",
+        "status": "modified",
+        "changes": 26
+      },
+      {
+        "filename": "apps/server/src/project/ProjectFaviconResolver.test.ts",
+        "status": "modified",
+        "changes": 27
+      },
+      {
+        "filename": "apps/server/src/project/ProjectFaviconResolver.ts",
+        "status": "modified",
+        "changes": 5
+      },
+      {
+        "filename": "apps/server/src/serverSettings.test.ts",
+        "status": "modified",
+        "changes": 31
+      },
+      {
+        "filename": "apps/server/src/serverSettings.ts",
+        "status": "modified",
+        "changes": 30
+      },
+      {
+        "filename": "apps/server/src/telemetry/AnalyticsService.test.ts",
+        "status": "modified",
+        "changes": 25
+      },
+      {
+        "filename": "apps/server/src/telemetry/AnalyticsService.ts",
+        "status": "modified",
+        "changes": 65
+      },
+      {
+        "filename": "apps/server/src/telemetry/Identify.test.ts",
+        "status": "modified",
+        "changes": 164
+      },
+      {
+        "filename": "apps/server/src/telemetry/Identify.ts",
+        "status": "modified",
+        "changes": 221
+      },
+      {
+        "filename": "apps/server/src/telemetry/ProviderDimensions.test.ts",
+        "status": "modified",
+        "changes": 33
+      },
+      {
+        "filename": "apps/server/src/telemetry/ProviderDimensions.ts",
+        "status": "modified",
+        "changes": 68
+      },
+      {
+        "filename": "apps/server/src/telemetry/ProviderUsageAnalytics.test.ts",
+        "status": "modified",
+        "changes": 22
+      },
+      {
+        "filename": "apps/server/src/telemetry/ProviderUsageAnalytics.ts",
+        "status": "modified",
+        "changes": 21
+      },
+      {
+        "filename": "apps/server/src/usage/UsageLimitSources.test.ts",
+        "status": "modified",
+        "changes": 76
+      },
+      {
+        "filename": "apps/server/src/usage/UsageLimitSources.ts",
+        "status": "modified",
+        "changes": 63
+      },
+      {
+        "filename": "apps/web/src/components/ProjectFavicon.browser.test.tsx",
+        "status": "modified",
+        "changes": 0
+      },
+      {
+        "filename": "apps/web/src/components/ProjectFavicon.tsx",
+        "status": "modified",
+        "changes": 0
+      }
+    ]
+  },
+  "specific_prs": [
+    {
+      "number": 42299,
+      "title": "fix(server): analytics no longer reads or sends Codex and Claude account IDs",
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-11-24T20:46:04Z",
+      "merge_commit_sha": "84e4264bb347e36e97f6c3bd95d666eecfa12e07",
+      "body": "T3 Code's analytics read `~/.codex/auth.json` and `~/.claude.json` at server boot and sent SHA-256 hashes of the ids it found there. Users did not sign in to those providers to be identified by T3 Code, and the hashes were unsalted. The original reason was to count one person across machines; the install id and owner links added in #21506 cover that now, and Julius agreed the provider ids can go.\n\nNow analytics never opens a provider's sign-in files:\n\n- `distinct_id` is the install id: the hash of a random id kept in the state directory. Before, it was the hashed Codex workspace id, then the Claude Code machine id, then the install id.\n- The `openai` and `claude` owners in `install.owner_observed` are gone, including the one recorded from T3's own ChatGPT sign-in. The T3 Connect account and client devices remain.\n- Events still carry both `distinct_id` and `installId`, now with the same value, so the wire shape is unchanged.\n\n## What reviewers should know\n\n- **Install charts will jump unless the ingest side moves first.** Anything keyed on `distinct_id` sees each upgraded install as a new id. Counting by `installId` (sent since 0.1.1) avoids this, and the old-id to install-id pairs already in stored events allow history to be remapped.\n- **User counts lean on Connect and device links only.** Someone with two machines, no Connect account, and no client device that opens both now counts as two people.\n- **Installs on current releases keep sending the old ids** until they update.\n- **One behaviour change:** an install that cannot persist its anonymous id now sends no telemetry. Before, it still sent if a provider file existed.\n- Overlaps with the in-progress `shareUsageData` toggle work in the first paragraph of `docs/user/telemetry.md`; `AnalyticsService.ts` and `serverRuntimeStartup.ts` are untouched here to keep that merge clean.\n\n## Verification\n\n- `vp test run` in `apps/server` for `Identify.test.ts`, `AnalyticsService.test.ts`, `CodexChatGptAuth.test.ts` and `serverRuntimeStartup.test.ts`: 78 passed.\n- A new test writes Codex and Claude sign-in files into the home directory and asserts `distinct_id` is still the install id.\n- `vp run check:changed` passes.\n- Not checked: a live server's outgoing events.\n\nCreated with Claude Fable 5.2 in Claude Code.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)"
+    },
+    {
+      "number": 42465,
+      "title": "fix(server): analytics report custom models as custom:<provider>, not their names",
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-11-24T23:10:39Z",
+      "merge_commit_sha": "6b3899f224947178088ca97ec9907e681807f7da",
+      "body": "## Problem\n\nProduct analytics sent any model id it could not match to a catalog verbatim (with no length cap). User-typed ids like `hf.co/<user>/<repo>`, Ollama tags, Azure deployment names, or GGUF file names reached `model` and `observedModel` (`provider.turn.completed`, `provider.run.settled`), `callerModel`/`targetModel` (`mcp.tool.invoked`, `mcp.delegated_task.finished`), and `agent.feedback`'s `model`. The file-path special case only removed the directory.\n\n## Fix\n\n`modelLabel` in `apps/server/src/telemetry/ProviderDimensions.ts` is still the one mapping behind every model dimension. A model counts as **known** when:\n\n- the bundled model manifest lists it (by slug or alias, also matched by its routed leaf such as `anthropic/claude-opus-5-5` or with a dated snapshot suffix removed), or\n- a vendor-sourced provider model list has it as a non-custom entry (slug or alias). Vendor-sourced means a codex, claudeAgent, cursor, grok, antigravity, kiro, or muse instance that is not on a custom endpoint or Bedrock.\n\nKnown models report the same catalog slug as before, so existing charts keep working. Any other id reports `custom:<driver>`, for example `custom:ollama`. OpenCode, Pi, fx, and ACP model lists reflect the user's own configuration, so they no longer count as known. The file-name special case was dead code after this change and is removed. The usage labeler now takes the driver. An empty model id, as on a delegated task with no model, now reports no model instead of `\"\"`.\n\nThe internal and user telemetry docs are updated to match.\n\n## Verification\n\n- `vp test run src/telemetry/ src/feedback/FeedbackService.test.ts src/mcp/McpHttpServer.test.ts` (apps/server): 87 passed\n- `vp run check:changed`: format, lint, knip, typecheck, and tests pass\n\nClaude Opus 5.5 via Claude Code in T3 Code.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n"
+    },
+    {
+      "number": 42464,
+      "title": "fix(server): relay tracing waits for the desktop shell environment before exporting",
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-11-24T22:51:50Z",
+      "merge_commit_sha": "49ef15662455af203c03cf2000ecbbf13d904583",
+      "body": "## Problem\n\nThe desktop app starts its backend with `T3CODE_DESKTOP_SHELL_DISCOVERY_PENDING=1` when it has not yet read the user's login shell (first launch, no shell-env cache). Product analytics waits for discovery and then honors the shell's `T3CODE_TELEMETRY_ENABLED`, but relay tracing decided once at module load. A `T3CODE_TELEMETRY_ENABLED=false` in `~/.zshrc` was therefore ignored: the backend exported relay spans to Axiom for the whole process, and `ws.ts` told browsers relay tracing was allowed.\n\n## Fix\n\nReuses AnalyticsService's mechanism: desktop shell discovery mutates the `HostProcess.Environment` record in place and drops the pending flag when it finishes.\n\n- `RelayTracing.allowedFor` now returns `false` while discovery is pending, then follows the real opt-out.\n- `relayLayer` passes `isEnabled: () => allowedFor(environment, undefined)` to the shared `RelayTracing.layer` (the gate mobile already uses), so spans and flushes are checked against the live environment. The managed policy is still applied once, when the layer is built, as it was before.\n- `ws.ts` computes `relayTracingAllowed` each time it builds the server config, not once per connection.\n\n## Verification\n\n- New regression test in `apps/server/src/cloud/relayTracing.test.ts`: it starts with discovery pending, then applies a shell opt-out and checks that nothing is exported. **It fails on main** (`expected true to be false`). With only the `allowedFor` half of the fix it also fails (`expected 1 to equal +0`: a span was exported), so both halves are covered.\n- `vp test run src/cloud/relayTracing.test.ts` passes, and `vp run check:changed` passes (format, lint, knip, typecheck, tests).\n\nClaude Opus 5.5 via Claude Code in T3 Code.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)\n"
+    },
+    {
+      "number": 42415,
+      "title": "feat(mobile): connection traces get their own switch",
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-11-24T21:38:20Z",
+      "merge_commit_sha": "68d6ef6f824a083bfd90b662f8e9e65bf158fc61",
+      "body": "#42356 made mobile relay tracing follow **Send crash reports**. Crash reports and connection traces are different data: one is sent when something breaks, the other on every connection to your machine. Turning one off shouldn't turn off the other. Julius asked for this follow-up.\n\n- The phone keeps a separate `connectionTracesEnabled` preference (unset means on, like crash reports). Relay tracing reads only that preference now, and **Send crash reports** goes back to controlling crash reports only. As before, tracing starts off until the saved preference loads.\n- One shared `ConnectionTracesSwitch` appears in two places:\n  - **Settings > About T3 Code > Diagnostics**, as a new **Connection diagnostics** section;\n  - the **T3 Connect setup sheet** shown after sign-in.\n\n  Both show only in builds with relay tracing configured. When both switches change the setting, only the newest change applies its result, so a slow earlier save can't turn sending back on.\n- The copy names what traces hold: timings, error types, an ID for the app session and the app version. Mobile copy is translated in all 9 locales, and `docs/user/telemetry.md` describes the separate switch.\n\nNo migration: the crash-reports \u2192 traces link from #42356 never shipped in a release.\n\n## Verification\n\n- iPhone 18 Pro Max sim, dev client, Metro pointed at placeholder tracing config (an HTTPS URL on a dead local port, so nothing was sent).\n  - The Diagnostics screen shows the new section with the switch on.\n  - Switching it off and relaunching keeps it off.\n- The setup sheet needs a T3 Connect sign-in, so I didn't run it. It renders the same switch component.\n\n<img alt=\"Diagnostics with connection traces off\" src=\"https://gh-file-drop-api-prod-mi5fy3sowv63ufte.pinglabs.workers.dev/f/d758606819c11bf5/mobile-connection-traces-off.png\" width=\"320\">\n\nClaude Opus 5.5 via Claude Code in T3 Code.\n\n\ud83e\udd16 Generated with [Claude Code](https://claude.com/claude-code)"
+    },
+    {
+      "number": 42376,
+      "title": "fix(desktop): Windows desktop applies the saved user telemetry opt-out",
+      "state": "closed",
+      "merged": true,
+      "merged_at": "2026-11-24T20:24:11Z",
+      "merge_commit_sha": "3ba003be06afbd32a75c69a5cf38fb9719695b70",
+      "body": "On Windows, a `T3CODE_TELEMETRY_ENABLED=false` saved as a user environment variable (as the telemetry docs say to do) was ignored when the desktop was launched from a process whose environment predated the setting. The bundled server then defaulted analytics to on and sent events. The desktop's Windows shell discovery now reads that variable, including from the saved User and Machine scopes.\n\n- `installWindowsEnvironment` now asks the Windows PowerShell probe for `T3CODE_TELEMETRY_ENABLED` and applies it when the inherited environment lacks it, as macOS and Linux already do from the login shell.\n- `windowsEnvironmentValueCommand` now falls back from the process scope to the User and then Machine scope for names other than `PATH`, so a variable saved after launch is found.\n\nFixes pingdotgg/t3code#42351\n\n## Reproduction on main\n\nCommit 8261b23226 (origin/main), on a pooled Windows Server 2025 machine. 1) Saved the user preference with [Environment]::SetEnvironmentVariable('T3CODE_TELEMETRY_ENABLED','false','User') and confirmed the User scope reads 'false'. 2) Ran `vp run dev:desktop` once to build. That run does not reproduce because scripts/dev-runner.ts sets T3CODE_TELEMETRY_ENABLED=false for every dev run, so I stopped it. 3) Launched the desktop's Electron directly (apps/desktop, `node scripts/dev-electron.mjs`) on the logged-in desktop from a cmd.exe where the variable had been cleared, standing in for a launcher that predates the saved setting. T3CODE_POSTHOG_HOST pointed at a local mock collector and T3CODE_HOME at a fresh directory. 4) Read each process's environment block (PEB) directly. The desktop main process and the server child (`bin.mjs --bootstrap-fd 3`) both had T3CODE_TELEMETRY_ENABLED absent, and T3CODE_DESKTOP_SHELL_DISCOVERY_PENDING was also gone, so shell discovery had finished. 5) 16 s after launch the mock received `POST /batch/` with events [\"server.boot.heartbeat\",\"install.owner_observed\"]. Control: the same launch with `set T3CODE_TELEMETRY_ENABLED=false` in the launcher gave the server child T3CODE_TELEMETRY_ENABLED=false, and the mock received no POST in the 90+ s after launch. Not run: the Start-menu launch after a fresh sign-in, which normally gets a fresh environment from Explorer. Windows Server 2025, not Windows 11; the cause does not depend on the OS version.\n\n## Evidence\n\nWindows Server 2025, 1920\u00d71080, light theme. Build each commit, save the User telemetry opt-out, clear the launcher variable, and launch Electron directly with fresh app data and profile. Observe the real bundled server, its PEB environment, and a loopback collector for approximately 135 seconds.\n\n| Before | After |\n|---|---|\n| [8261b23226](https://github.com/pingdotgg/t3code/commit/8261b23226ce96fac30221c16ee9b05933a6f367) | [ff6fbd84ff](https://github.com/pingdotgg/t3code/commit/ff6fbd84ffb36ea93a7bb11f6d19f498e092707e) |\n| ![Before: missing opt-out and analytics received](https://gh-file-drop-api-prod-mi5fy3sowv63ufte.pinglabs.workers.dev/f/8348ba46902e5dee/before.png) | ![After: inherited opt-out and no analytics received](https://gh-file-drop-api-prod-mi5fy3sowv63ufte.pinglabs.workers.dev/f/79cb09a82799adc6/after.png) |\n| Variable absent after discovery; one /batch/ at 13.7 seconds containing server.boot.heartbeat and install.owner_observed. | Variable false in desktop and server after discovery; zero POST requests over 135.1 seconds. |\n| [Before recording](https://gh-file-drop-api-prod-mi5fy3sowv63ufte.pinglabs.workers.dev/f/fd2cc25427b9bc9a/before.mp4) | [After recording](https://gh-file-drop-api-prod-mi5fy3sowv63ufte.pinglabs.workers.dev/f/2ad06166d909e211/recording.mp4) |\n\n[Driver scripts](https://gh-file-drop-api-prod-mi5fy3sowv63ufte.pinglabs.workers.dev/f/9ad3c2b4f285326e/driver.zip) \u00b7 [Runtime observations](https://gh-file-drop-api-prod-mi5fy3sowv63ufte.pinglabs.workers.dev/f/baef0496e7076eb0/runtime-evidence.json). Both final stills were byte-identical to captures 500 ms later; stills and recordings were visually inspected.\n\n**Not shown:**\n- Windows 11 and a Start-menu launch after fresh sign-in were not exercised; this comparison reproduced the supplied Windows Server 2025 stale-launcher conditions.\n- Machine-scope-only fallback, explicit process-value precedence, and other non-PATH variables affected by the shared scope fallback were not exercised.\n\n## Tests\n\n- `vp test run src/shell/DesktopShellEnvironment.test.ts` (apps/desktop): 34 passed; the repro test failed with `expected undefined to equal 'false'` before the fix\n- `vp test run src/shell.test.ts` (packages/shared): 83 passed, 4 skipped\n- Generated PowerShell value command on a Windows Server 2025 machine: User-only value now read ('false', old command printed empty), process value still wins ('true'), unset prints empty\n- `vp run check:changed`: format, lint, knip, typecheck (37 packages) and tests (3 files) passed\n- PR CI on ff6fbd8: all 38 checks passed\n\n## Not in this change\n\n- T3CODE_FEATURE_FLAGS and T3CODE_RELEASE_BASE_URL, which macOS and Linux take from the login shell, are still not read on Windows.\n\n## Who did the work\n\n- Written by Claude Opus 5.5, in Claude Code\n- Reviewed by GPT-6.1 Sol, in Codex, and by Claude Opus 5.5, each on its own\n- Proof captured by GPT-6.1 Sol and checked by Claude Opus 5.5\n\nRun by the t3code factory in [T3 Code](https://github.com/pingdotgg/t3code)."
+    }
+  ],
+  "search_merged_prs": [
+    {
+      "mergeCommit": {
+        "oid": "49ef15662455af203c03cf2000ecbbf13d904583"
+      },
+      "mergedAt": "2026-11-24T22:51:50Z",
+      "number": 42464,
+      "title": "fix(server): relay tracing waits for the desktop shell environment before exporting",
+      "url": "https://github.com/pingdotgg/t3code/pull/42464"
+    },
+    {
+      "mergeCommit": {
+        "oid": "dc7b8802b84fd658d4be59eec0d3773dfd10aaa2"
+      },
+      "mergedAt": "2026-11-24T21:12:52Z",
+      "number": 42356,
+      "title": "fix(connect): respect relay tracing opt-outs and remove machine details",
+      "url": "https://github.com/pingdotgg/t3code/pull/42356"
+    },
+    {
+      "mergeCommit": {
+        "oid": "68d6ef6f824a083bfd90b662f8e9e65bf158fc61"
+      },
+      "mergedAt": "2026-11-24T21:38:20Z",
+      "number": 42415,
+      "title": "feat(mobile): connection traces get their own switch",
+      "url": "https://github.com/pingdotgg/t3code/pull/42415"
+    },
+    {
+      "mergeCommit": {
+        "oid": "f020e4ae8dfd9a35ef7da3e4ae365aa7be9946ed"
+      },
+      "mergedAt": "2026-11-24T22:51:40Z",
+      "number": 42466,
+      "title": "fix(server): anonymous analytics events go out in their own request",
+      "url": "https://github.com/pingdotgg/t3code/pull/42466"
+    },
+    {
+      "mergeCommit": {
+        "oid": "6b3899f224947178088ca97ec9907e681807f7da"
+      },
+      "mergedAt": "2026-11-24T23:10:39Z",
+      "number": 42465,
+      "title": "fix(server): analytics report custom models as custom:<provider>, not their names",
+      "url": "https://github.com/pingdotgg/t3code/pull/42465"
+    },
+    {
+      "mergeCommit": {
+        "oid": "482e197faeb5dfef69582514bf14769fa019a71a"
+      },
+      "mergedAt": "2026-11-24T20:19:24Z",
+      "number": 42394,
+      "title": "fix(mobile): analytics uses its own random device id",
+      "url": "https://github.com/pingdotgg/t3code/pull/42394"
+    },
+    {
+      "mergeCommit": {
+        "oid": "4eccb0ecfcc12655f3231203f766c56b05692170"
+      },
+      "mergedAt": "2026-11-24T19:57:22Z",
+      "number": 42380,
+      "title": "fix(relay): traces no longer record callers' IP addresses or user agents",
+      "url": "https://github.com/pingdotgg/t3code/pull/42380"
+    },
+    {
+      "mergeCommit": {
+        "oid": "84e4264bb347e36e97f6c3bd95d666eecfa12e07"
+      },
+      "mergedAt": "2026-11-24T20:46:04Z",
+      "number": 42299,
+      "title": "fix(server): analytics no longer reads or sends Codex and Claude account IDs",
+      "url": "https://github.com/pingdotgg/t3code/pull/42299"
+    },
+    {
+      "mergeCommit": {
+        "oid": "5c7e4379b6d07cb3e3d87b82b80dfe0686ad34be"
+      },
+      "mergedAt": "2026-11-06T04:41:43Z",
+      "number": 30942,
+      "title": "docs: clarify diagnostic exports and their separate controls",
+      "url": "https://github.com/pingdotgg/t3code/pull/30942"
+    },
+    {
+      "mergeCommit": {
+        "oid": "796103f4b792847561c65c921e82375a29d016c9"
+      },
+      "mergedAt": "2026-11-24T20:52:13Z",
+      "number": 42398,
+      "title": "fix(server): agent feedback no longer links to the install",
+      "url": "https://github.com/pingdotgg/t3code/pull/42398"
+    },
+    {
+      "mergeCommit": {
+        "oid": "1bc44f2732ce0a24c0608626d59409f1a0893db4"
+      },
+      "mergedAt": "2026-11-23T14:27:43Z",
+      "number": 41237,
+      "title": "fix(server): analytics report every model name",
+      "url": "https://github.com/pingdotgg/t3code/pull/41237"
+    },
+    {
+      "mergeCommit": {
+        "oid": "3ba003be06afbd32a75c69a5cf38fb9719695b70"
+      },
+      "mergedAt": "2026-11-24T20:24:11Z",
+      "number": 42376,
+      "title": "fix(desktop): Windows desktop applies the saved user telemetry opt-out",
+      "url": "https://github.com/pingdotgg/t3code/pull/42376"
+    },
+    {
+      "mergeCommit": {
+        "oid": "6794d5646ca62520176a9fed2faae0855d24ef26"
+      },
+      "mergedAt": "2026-11-16T22:53:18Z",
+      "number": 37792,
+      "title": "fix(desktop): relay tracing honors a telemetry opt-out from the login shell",
+      "url": "https://github.com/pingdotgg/t3code/pull/37792"
+    },
+    {
+      "mergeCommit": {
+        "oid": "3380585e1bfcc99634ee78edf02624d396886fd2"
+      },
+      "mergedAt": "2026-11-24T20:13:04Z",
+      "number": 42285,
+      "title": "feat(relay): delete a user's relay data when Clerk deletes the user",
+      "url": "https://github.com/pingdotgg/t3code/pull/42285"
+    },
+    {
+      "mergeCommit": {
+        "oid": "3b44698d07c722471279d6a933499d6108148632"
+      },
+      "mergedAt": "2026-10-06T20:55:09Z",
+      "number": 16562,
+      "title": "docs(marketing): disclose product usage data in the privacy policy",
+      "url": "https://github.com/pingdotgg/t3code/pull/16562"
+    },
+    {
+      "mergeCommit": {
+        "oid": "ec844a39951cd1cf1d5fbafe5d3f242dae490c3e"
+      },
+      "mergedAt": "2026-11-15T01:00:23Z",
+      "number": 30940,
+      "title": "fix(client-runtime): omit machine labels from relay spans",
+      "url": "https://github.com/pingdotgg/t3code/pull/30940"
+    },
+    {
+      "mergeCommit": {
+        "oid": "0d90edcf0f97b0e89a7eca608048dd83128024d2"
+      },
+      "mergedAt": "2026-11-24T02:55:47Z",
+      "number": 41859,
+      "title": "fix(relay): APNs request spans and errors no longer record the request URL",
+      "url": "https://github.com/pingdotgg/t3code/pull/41859"
+    },
+    {
+      "mergeCommit": {
+        "oid": "333f7a6f6e6b074ba28aca662ff4052c99280d15"
+      },
+      "mergedAt": "2026-11-02T05:37:08Z",
+      "number": 27828,
+      "title": "ci(release): preview releases run from any branch",
+      "url": "https://github.com/pingdotgg/t3code/pull/27828"
+    },
+    {
+      "mergeCommit": {
+        "oid": "7e269e044bfc27ffe0ac81c194d0139b173b7d50"
+      },
+      "mergedAt": "2026-11-24T21:29:33Z",
+      "number": 42397,
+      "title": "fix(server): MCP tool analytics send only closed error codes and delivery values",
+      "url": "https://github.com/pingdotgg/t3code/pull/42397"
+    },
+    {
+      "mergeCommit": {
+        "oid": "23ce025f5834cc78b8b2c796a20779568bb636b7"
+      },
+      "mergedAt": "2026-10-20T01:35:44Z",
+      "number": 14413,
+      "title": "fix(telemetry): honor opt-out for relay tracing",
+      "url": "https://github.com/pingdotgg/t3code/pull/14413"
+    },
+    {
+      "mergeCommit": {
+        "oid": "619c652d2556ebdbb166db3e9f5706774c8b288c"
+      },
+      "mergedAt": "2026-11-14T17:58:34Z",
+      "number": 35176,
+      "title": "fix(web): retain custom model drafts until saved",
+      "url": "https://github.com/pingdotgg/t3code/pull/35176"
+    },
+    {
+      "mergeCommit": {
+        "oid": "e2875821820e34047bc70bc786b8b39ef3fc35eb"
+      },
+      "mergedAt": "2026-10-20T07:14:03Z",
+      "number": 21506,
+      "title": "feat(server): analytics records a stable install id and who owns each install",
+      "url": "https://github.com/pingdotgg/t3code/pull/21506"
+    },
+    {
+      "mergeCommit": {
+        "oid": "66e96e52a436831b4e50cc7bd28ab7929a7ba968"
+      },
+      "mergedAt": "2026-11-06T04:33:40Z",
+      "number": 30679,
+      "title": "perf(client-runtime): stop tracing streamed thread batches",
+      "url": "https://github.com/pingdotgg/t3code/pull/30679"
+    },
+    {
+      "mergeCommit": {
+        "oid": "25f0b2a1b7323563aa5d4e7f70e78a3889c5918e"
+      },
+      "mergedAt": "2026-10-06T05:04:52Z",
+      "number": 16314,
+      "title": "fix(observability): T3 Connect tracing stops at the relay boundary",
+      "url": "https://github.com/pingdotgg/t3code/pull/16314"
+    },
+    {
+      "mergeCommit": {
+        "oid": "115640ae49924c9e4e6215bd8d911445ad932bff"
+      },
+      "mergedAt": "2026-10-06T20:55:10Z",
+      "number": 16564,
+      "title": "feat(web): note anonymous usage data in onboarding and link the privacy policy",
+      "url": "https://github.com/pingdotgg/t3code/pull/16564"
+    },
+    {
+      "mergeCommit": {
+        "oid": "d897d3f3f00f2cb534c813e637154d39c8d1cff6"
+      },
+      "mergedAt": "2026-11-01T20:10:45Z",
+      "number": 27197,
+      "title": "feat: managed policy for organization-wide T3 Code configuration",
+      "url": "https://github.com/pingdotgg/t3code/pull/27197"
+    },
+    {
+      "mergeCommit": {
+        "oid": "9304d843e59b6f42ce36c14461e2467ceb0fc7f4"
+      },
+      "mergedAt": "2026-11-06T04:35:18Z",
+      "number": 30678,
+      "title": "perf(server): stop tracing routine port polling helpers",
+      "url": "https://github.com/pingdotgg/t3code/pull/30678"
+    },
+    {
+      "mergeCommit": {
+        "oid": "f252ed0cdde04978eb163aa9c614c3277b4a1b60"
+      },
+      "mergedAt": "2026-10-24T00:57:05Z",
+      "number": 23974,
+      "title": "fix(observability): custom resource attributes use the t3code prefix",
+      "url": "https://github.com/pingdotgg/t3code/pull/23974"
+    },
+    {
+      "mergeCommit": {
+        "oid": "a0ea49e23418634a363ffcf6ce2b43cfa5cfe65c"
+      },
+      "mergedAt": "2026-11-21T02:20:38Z",
+      "number": 39973,
+      "title": "fix(gitlab): custom merge request avatars load in the list",
+      "url": "https://github.com/pingdotgg/t3code/pull/39973"
+    },
+    {
+      "mergeCommit": {
+        "oid": "e45ddea067e8d2337fe92845c5eb6d4c02255b9c"
+      },
+      "mergedAt": "2026-10-20T02:33:15Z",
+      "number": 22081,
+      "title": "fix(client-runtime): connection attempts record their outcome and failure reason",
+      "url": "https://github.com/pingdotgg/t3code/pull/22081"
+    },
+    {
+      "mergeCommit": {
+        "oid": "30f141e2e70cefdd932e9d8d5a04bf38821b1589"
+      },
+      "mergedAt": "2026-11-24T22:26:31Z",
+      "number": 42450,
+      "title": "fix(server): relay-delivered webhook runs no longer export their spans to the relay",
+      "url": "https://github.com/pingdotgg/t3code/pull/42450"
+    },
+    {
+      "mergeCommit": {
+        "oid": "6f05fbf45f4c3d7f3a63975d3c723bd5d11708fa"
+      },
+      "mergedAt": "2026-11-20T03:46:59Z",
+      "number": 39483,
+      "title": "fix(server): secret names can no longer leave the secrets directory",
+      "url": "https://github.com/pingdotgg/t3code/pull/39483"
+    },
+    {
+      "mergeCommit": {
+        "oid": "93b0db1bc826fddc41a493b0f87a04dabf60801c"
+      },
+      "mergedAt": "2026-11-03T23:40:25Z",
+      "number": 29758,
+      "title": "perf(server): stop tracing per-event live coalescer work",
+      "url": "https://github.com/pingdotgg/t3code/pull/29758"
+    },
+    {
+      "mergeCommit": {
+        "oid": "71d1830e52d8e4bcb2b81dead36ce449ef8db5c3"
+      },
+      "mergedAt": "2026-11-23T05:02:50Z",
+      "number": 41214,
+      "title": "fix(server): token analytics label new models from Codex and Claude catalogs",
+      "url": "https://github.com/pingdotgg/t3code/pull/41214"
+    },
+    {
+      "mergeCommit": {
+        "oid": "46b626263fcfaa13d09448272dd749c82c95023a"
+      },
+      "mergedAt": "2026-11-20T21:25:41Z",
+      "number": 39897,
+      "title": "fix(server): token analytics record new Antigravity models",
+      "url": "https://github.com/pingdotgg/t3code/pull/39897"
+    },
+    {
+      "mergeCommit": {
+        "oid": "fb99a5e4b026162812bf078ea37f161f6ae007c8"
+      },
+      "mergedAt": "2026-11-04T18:35:37Z",
+      "number": 30501,
+      "title": "refactor: move HMAC, key, and random work to effect/crypto",
+      "url": "https://github.com/pingdotgg/t3code/pull/30501"
+    },
+    {
+      "mergeCommit": {
+        "oid": "ea632744134e673b28ba62c9144dec6d4ae82c3c"
+      },
+      "mergedAt": "2026-11-25T00:32:27Z",
+      "number": 42489,
+      "title": "chore(deps): bump vite-plus to 1.8.0",
+      "url": "https://github.com/pingdotgg/t3code/pull/42489"
+    },
+    {
+      "mergeCommit": {
+        "oid": "b12631291728c175c720f0cd660f3218cf2af236"
+      },
+      "mergedAt": "2026-10-20T01:31:14Z",
+      "number": 21997,
+      "title": "refactor(effect): trace relay and development tooling operations",
+      "url": "https://github.com/pingdotgg/t3code/pull/21997"
+    },
+    {
+      "mergeCommit": {
+        "oid": "2b1021ce411db0f0aade4c513ab2bb4b0cdcaf94"
+      },
+      "mergedAt": "2026-11-01T13:06:40Z",
+      "number": 28666,
+      "title": "perf(codex): trace app server request latency",
+      "url": "https://github.com/pingdotgg/t3code/pull/28666"
+    },
+    {
+      "mergeCommit": {
+        "oid": "2ecf7995227fd4c8f2bbff734b783b31b325c347"
+      },
+      "mergedAt": "2026-11-25T00:51:27Z",
+      "number": 42521,
+      "title": "chore: Clerk packages update",
+      "url": "https://github.com/pingdotgg/t3code/pull/42521"
+    },
+    {
+      "mergeCommit": {
+        "oid": "f736543c1e4d195f0b093b42bc1860804f691c63"
+      },
+      "mergedAt": "2026-10-31T01:40:25Z",
+      "number": 26511,
+      "title": "fix(client-runtime): idle clients stop tracing unchanged platform registrations",
+      "url": "https://github.com/pingdotgg/t3code/pull/26511"
+    },
+    {
+      "mergeCommit": {
+        "oid": "ed3b241eaaebfdcf6a014d8aba71a1180a8a680e"
+      },
+      "mergedAt": "2026-11-21T05:07:35Z",
+      "number": 40133,
+      "title": "fix(server): signed URLs are logged and traced with the token redacted",
+      "url": "https://github.com/pingdotgg/t3code/pull/40133"
+    },
+    {
+      "mergeCommit": {
+        "oid": "01fe8d91887af5e0669a0378b77a97c9114c43c6"
+      },
+      "mergedAt": "2026-10-25T21:15:18Z",
+      "number": 23973,
+      "title": "fix(observability): every exported resource names its service instance",
+      "url": "https://github.com/pingdotgg/t3code/pull/23973"
+    },
+    {
+      "mergeCommit": {
+        "oid": "aa685426e75e2cad4db638451ded5d607efbe210"
+      },
+      "mergedAt": "2026-11-20T03:46:44Z",
+      "number": 39482,
+      "title": "fix(relay): refuse to relink an active environment under a different key",
+      "url": "https://github.com/pingdotgg/t3code/pull/39482"
+    },
+    {
+      "mergeCommit": {
+        "oid": "e10ea0c937328c9b5b035b476415ce4ff2c56824"
+      },
+      "mergedAt": "2026-11-17T06:03:30Z",
+      "number": 37938,
+      "title": "test(web): load the runtime graph before the relay telemetry cases time out",
+      "url": "https://github.com/pingdotgg/t3code/pull/37938"
+    },
+    {
+      "mergeCommit": {
+        "oid": "d2329add05ff061a709ac2948b5ff5596fe28f41"
+      },
+      "mergedAt": "2026-11-21T00:10:11Z",
+      "number": 40004,
+      "title": "fix(relay): sample Workers Logs at 1%",
+      "url": "https://github.com/pingdotgg/t3code/pull/40004"
+    },
+    {
+      "mergeCommit": {
+        "oid": "780db269df19c3d6bd56425e7c183b2596d704e1"
+      },
+      "mergedAt": "2026-11-23T09:11:58Z",
+      "number": 41330,
+      "title": "docs: prune internal and operations docs and enforce them in review",
+      "url": "https://github.com/pingdotgg/t3code/pull/41330"
+    },
+    {
+      "mergeCommit": {
+        "oid": "442735897f6f92af33798075baa12d4fd4d710dd"
+      },
+      "mergedAt": "2026-10-06T06:13:47Z",
+      "number": 16382,
+      "title": "fix(relay): export traces through one tracer, one request span each",
+      "url": "https://github.com/pingdotgg/t3code/pull/16382"
+    },
+    {
+      "mergeCommit": {
+        "oid": "7da318e2d563b4e3c51edde06d435b5c4ec2eb9e"
+      },
+      "mergedAt": "2026-11-18T21:18:38Z",
+      "number": 37820,
+      "title": "fix(relay): revoke the previous link when switching accounts",
+      "url": "https://github.com/pingdotgg/t3code/pull/37820"
+    },
+    {
+      "mergeCommit": {
+        "oid": "a84f851055371663ef2729917a5da53bcc1fc46c"
+      },
+      "mergedAt": "2026-10-20T03:48:01Z",
+      "number": 22088,
+      "title": "fix(relay): relay dashboard latency charts show real durations",
+      "url": "https://github.com/pingdotgg/t3code/pull/22088"
+    }
+  ]
+}

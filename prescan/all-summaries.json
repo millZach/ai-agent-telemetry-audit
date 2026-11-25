@@ -1,0 +1,1069 @@
+[
+  {
+    "slug": "t3code",
+    "platform": "T3 Code",
+    "group": "A",
+    "repo": "pingdotgg/t3code",
+    "sha": "2b84f4862ce7320bdff28cef88d3ed8d0f23797e",
+    "commit_date": "2026-11-24T20:51:11-08:00",
+    "license": "MIT",
+    "status": "Active",
+    "default_state": "ON by default for server/desktop product usage analytics (ingest.t3.codes), relay connection tracing (Axiom), mobile crash reporting (expo-observe -> Relay -> Axiom), and mobile connection tracing; OFF by default for agent.feedback, Publish agent activity, and user OTLP export",
+    "opt_out_controls": [
+      "Env var T3CODE_TELEMETRY_ENABLED=false (disables server/desktop/local-browser product analytics & relay tracing; read from macOS/Linux login shell and Windows User/Machine scopes)",
+      "Env vars T3CODE_OTEL_SDK_DISABLED=true / OTEL_SDK_DISABLED=true (disables OTLP/relay tracing only; NOT forwarded by Desktop shell/Windows probes; does NOT stop ingest.t3.codes)",
+      "Admin Managed Policy limits.telemetry: false (/etc/t3code/policy.json, /Library/Application Support/T3Code/policy.json, C:\\Program Files\\T3Code\\policy.json)",
+      "Mobile UI switches (post-install opt-out): Send crash reports and Send connection traces in Settings > About T3 Code > Diagnostics (and Connect setup sheet for traces)",
+      "NO in-app UI toggle, NO settings JSON key, and NO CLI flag for product analytics"
+    ],
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "AnalyticsService.make (AnalyticsService.ts:152) unconditionally executes getTelemetryIdentity -> upsertAnonymousId at startup even when T3CODE_TELEMETRY_ENABLED=false or limits.telemetry: false, creating/reading <stateDir>/anonymous-id",
+      "serverRuntimeStartup.ts:178 eagerly evaluates getServerOwners at startup even when telemetry is disabled, reading/hashing CLOUD_LINKED_USER_ID",
+      "DesktopShellEnvironment.ts:102-137 omits T3CODE_OTEL_SDK_DISABLED and OTEL_SDK_DISABLED from LOGIN_SHELL_ENV_NAMES, WINDOWS_PROFILE_ENV_NAMES, and CACHED_ENV_NAMES",
+      "Hosted web app app.t3.codes relay tracing (apps/web/src/cloud/publicConfig.ts:79) unconditionally returns true when no primary server overrides it, with no user opt-out",
+      "LiteLLM pricing fetch (UsageService.ts:300-325) and passive Google Favicon fetches (favicon.ts:81) ignore T3CODE_TELEMETRY_ENABLED and enableProviderUpdateChecks"
+    ],
+    "persistent_ids": [
+      "<stateDir>/anonymous-id (UUIDv4, created/read unconditionally even when disabled, hashed as distinct_id & installId)",
+      "Browser localStorage key t3code:analytics-device-id (UUIDv4, hashed as clientDevice)",
+      "Mobile secure storage t3code.analytics.device-id (UUIDv4, hashed as clientDevice, separated from t3code.agent-awareness.device-id)",
+      "expo-observe random install ID (mobile crashes/metrics)",
+      "Browser per-page-load service.instance.id UUID (clientTracer.ts:7)"
+    ],
+    "hashing": "Unsalted SHA-256 hex (packages/shared/src/telemetryId.ts:8-9) for installId/distinct_id, connect/device ownerId, and Android FCM user_hash (sha256(userId:deviceId))",
+    "external_auth_reads": "REMOVED from telemetry in #42299 (Identify.ts and CodexChatGptAuth.ts no longer read ~/.codex/auth.json or ~/.claude.json). Non-telemetry reads remain: ~/.claude/.credentials.json & ~/.claude.json in claudeResetCredits.ts (Anthropic usage reset credits), ~/.cursor/sandbox.json check in Cursor textGeneration.ts, and user-initiated BrowserImport cookie DBs/keychains",
+    "telemetry_endpoints": [
+      "https://ingest.t3.codes/batch/ (closed-source analytics proxy -> PostHog)",
+      "https://api.axiom.co/v1/traces & build-injected Axiom OTLP URLs (relay tracing)",
+      "https://relay.t3.codes/v1/mobile/observe (mobile expo-observe -> Axiom)",
+      "https://www.google.com/s2/favicons?domain=... (passive public-domain favicon leak)",
+      "https://raw.githubusercontent.com/pingdotgg/t3code/main/apps/server/src/provider/model-manifest.json (model catalog auto-fetch)",
+      "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json & GitHub API fallback (LiteLLM pricing)",
+      "https://api.github.com/repos/pingdotgg/t3code/releases (desktop/CLI auto-updates)"
+    ],
+    "ip_geo_handling": "AnalyticsService.ts omits PostHog $geoip_disable and $ip:null behind closed-source ingest.t3.codes; privacy-policy.astro:98-103 discloses IP logging. Relay Worker (infra/relay/src/http/Api.ts:213-265) now strips remoteAddress and user-agent from trace span requests (#42380) but STILL annotates Axiom spans with Cloudflare relay.edge.colo, relay.edge.country, relay.edge.continent, and raw Clerk user.id/relay.auth.subject; MobileTelemetry.ts:266 reads cf-connecting-ip for rate limiting",
+    "custom_model_handling": "FIXED in #42465: modelLabel (ProviderDimensions.ts:66-72) maps only known bundled manifest or non-custom vendor catalog entries to catalog slugs and masks all other/custom/local/custom-endpoint/Bedrock models as custom:<driver>",
+    "docs_discrepancies": [
+      "WelcomePage.tsx:353, SettingsPanels.tsx:2589, and privacy-policy.astro:85 still label product telemetry 'anonymous' despite installId + Connect/device owner linking and raw Clerk user.id + Cloudflare edge geo on Relay Axiom spans",
+      "Docs and privacy-policy.astro do not disclose unconditional <stateDir>/anonymous-id generation or getServerOwners reading when telemetry is disabled",
+      "docs/user/telemetry.md:75-76 states T3CODE_OTEL_SDK_DISABLED/OTEL_SDK_DISABLED stop relay tracing without noting Desktop shell/Windows env discovery ignores both",
+      "privacy-policy.astro (2026-10-06) omits Google favicon leaks, automatic GitHub model-manifest/LiteLLM fetches, and Cloudflare edge colo/country logging",
+      "WelcomePage.tsx onboarding notice says 'To opt out, see the privacy policy' with no UI switch or inline T3CODE_TELEMETRY_ENABLED=false instruction"
+    ],
+    "privacy_rating": "D",
+    "one_line_verdict": "Upgraded from Baseline F to D after #42299/#42465/#42464/#42376/#42415 removed Codex/Claude auth harvesting, masked custom models to custom:<driver>, fixed Desktop/Windows/local-browser relay opt-out races, and added mobile trace controls\u2014yet remains D due to default-on tracking with no UI/config/CLI opt-out, unconditional anonymous-id creation when disabled, unsalted SHA-256 hashing, missing PostHog IP suppression behind closed-source ingest.t3.codes, hosted-web/Desktop-OTEL opt-out gaps, and Relay Axiom geo + raw Clerk user.id logging."
+  },
+  {
+    "slug": "vibe-kanban",
+    "platform": "Vibe Kanban",
+    "group": "A",
+    "repo": "BloopAI/vibe-kanban",
+    "sha": "3f095f0186f6e68d67143d38b02da2238f6524d8",
+    "commit_date": "2026-11-15T17:05:51+01:00",
+    "license": "Apache-2.0",
+    "status": "Active",
+    "default_state": "OFF (hard-disabled in local server, Tauri, MCP, and web UI; remote server PostHog & Application Insights OTEL OFF unless operator-configured)",
+    "opt_out_controls": "Hard-disabled in local code (`AnalyticsConfig::new() -> None`, `SentrySource::dsn() -> None`, no frontend `posthog.init`/`Sentry.init`, `scripts/release-local.sh` strips/bans keys); legacy `analytics_enabled` config key remains `true` by default with UI toggle removed; no opt-out for ACP registry fetch, Discord/GitHub UI polling, npm update check, or remote server telemetry if enabled",
+    "do_not_track": "Not checked (0 matches in repo)",
+    "opt_out_bypasses": "Local PostHog/Sentry cannot fire; however, un-gated outbound calls run on startup/render (ACP registry `cdn.agentclientprotocol.com`, Discord widget, GitHub stars API, npm latest check, Tauri hourly updater in CI builds, preview-proxy jsDelivr Eruda); `generate_user_id()` runs unconditionally on startup; `crates/remote` ignores `analytics_enabled` when operator enables PostHog/OTEL",
+    "persistent_ids": "Unconditional startup `generate_user_id()` (`crates/local-deployment/src/lib.rs:128`) produces `npm_user_<16-hex>` from OS machine ID (`/etc/machine-id` / `IOPlatformUUID` / `MachineGuid`) + username + home dir, exposed at `/api/info` (`machine_id`) and sent to Relay on connect (`crates/server/src/runtime/relay_registration.rs:130`); remote server uses user UUID",
+    "hashing": "Unsalted deterministic `std::collections::hash_map::DefaultHasher` (SipHash-1-3 with fixed keys) in `generate_user_id()` (`crates/services/src/services/analytics.rs:112-164`)",
+    "external_auth_reads": "Functional-only: pre-onboarding startup and `/api/agents/check-availability` check metadata `mtime`/existence (not file contents) on `~/.codex/auth.json`, `~/.claude.json`, `~/.gemini/oauth_creds.json`, `~/.cursor/mcp.json`, `~/.qwen/`, `~/.factory/`, `~/.opencode/`; MCP editor reads/writes agent configs on request; `vibe-kanban-review` CLI optionally reads `~/.claude/projects` on user confirmation. None sent to telemetry",
+    "telemetry_endpoints": "Local app: none active for PostHog/Sentry; active non-telemetry endpoints: `https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json`, `https://discord.com/api/guilds/1423630976524877857/widget.json`, `https://api.github.com/repos/BloopAI/vibe-kanban`, `https://registry.npmjs.org/vibe-kanban/latest`, `https://cdn.jsdelivr.net/npm/eruda@3.4.3/eruda.js`, `https://fonts.googleapis.com/css2`, Tauri `__TAURI_UPDATE_ENDPOINT__`, optional `https://api.vibekanban.com` / relay; Remote server (`crates/remote` if operator-configured): `{POSTHOG_API_ENDPOINT}/capture/` & Azure Application Insights; Docs: `https://eu.i.posthog.com`",
+    "ip_geo_handling": "No `$geoip_disable` or `$ip` suppression in `AnalyticsService` (`crates/services/src/services/analytics.rs`, `crates/remote/src/analytics.rs`); `send_default_pii` absent; `crates/remote/src/routes/review.rs:214,236` stores raw client IP (`CF-Connecting-IP`/`X-Forwarded-For`/`X-Real-IP`) in PostgreSQL `reviews.ip_address` for rate limiting",
+    "custom_model_handling": "Custom/private model IDs (`model_id`) are not included in any local or remote analytics payloads (dormant events only reference `executor` and `variant`)",
+    "docs_discrepancies": "`README.md:118-119` still lists `POSTHOG_API_KEY`/`POSTHOG_API_ENDPOINT` for local builds despite hardcoded disablement; `docs/settings/general.mdx:173-175` & `docs/configuration-customisation/global-settings.mdx:104-106,126-130` still document removed telemetry toggle/notice; `LandingPage.tsx:550` links privacy policy while UI claims no collection; `.github/workflows/pre-release.yml` retains PostHog/Sentry build steps vs `RELEASING.md`; `docs/docs.json:158-163` embeds live PostHog key",
+    "privacy_rating": "B",
+    "one_line_verdict": "Local PostHog and Sentry telemetry are hard-disabled in this sunsetting release, though unconditional startup hardware-ID derivation, un-gated third-party API/CDN/registry fetches, operator-configurable telemetry in `crates/remote`, and stale config/docs remnants remain."
+  },
+  {
+    "slug": "emdash",
+    "platform": "Emdash",
+    "group": "A",
+    "repo": "generalaction/emdash",
+    "sha": "c8769892fd61f63b5c95ca1fccf727cee4d07809",
+    "commit_date": "2026-11-23T15:30:26-08:00",
+    "license": "Apache-2.0",
+    "status": "Active",
+    "default_state": "Opt-out (ON by default in packaged canary/prod builds when CI VITE_POSTHOG_KEY/HOST are injected; disabled in Vite dev builds; zero first-run onboarding notice)",
+    "opt_out_controls": "Settings -> General -> Privacy & Telemetry switch (KV telemetry:enabled) and TELEMETRY_ENABLED=false/0/no env var (no CLI flag)",
+    "do_not_track": false,
+    "opt_out_bypasses": "Settings switch captures setting_changed BEFORE setTelemetryEnabled(false) RPC finishes (emits final event on opt-out); telemetry:instanceId, lastSessionId & 60s lastHeartbeatTs KV loop still run when disabled; pre-sampled perf-vitals timers not stopped mid-session (though outbound fetch drops at isEnabled()); UpdateService (GitHub/R2) has no disable toggle; gh CLI boot probe runs unconditionally",
+    "persistent_ids": "SQLite KV telemetry:instanceId (UUIDv4, persisted even when disabled, exposed in Help -> Copy Installation ID), per-launch session_id + KV telemetry:lastSessionId, KV desktop-client-id (SSH workspace-server only), raw entity IDs (project_id, task_id, conversation_id, automation_id, terminal_id), and signed-in plaintext email + github_username + account_id",
+    "hashing": "None (raw UUIDs; signed-in Emdash Account users send plaintext email, github_username, and account_id to PostHog $identify, /decide/?v=3, and getBaseProps(), stitching anonymous pre-login instanceId to real identity)",
+    "external_auth_reads": "CRITICAL: bootBackground unconditionally runs `gh auth status --json hosts --show-token` on every launch to extract plaintext GitHub CLI OAuth tokens, query api.github.com/GHE, save to safeStorage, and emit integration_connected telemetry (token not sent to PostHog); also reads ~/.ssh/config (+Includes) for UI import, manages agent hooks/MCP/trust in ~/.claude/settings.json, ~/.claude.json, ~/.codex/config.toml, ~/.cursor, ~/.copilot, ~/.gemini/config, etc., and checks agent auth/usage via CLI/SDK",
+    "telemetry_endpoints": [
+      "https://<VITE_POSTHOG_HOST>/capture/",
+      "https://<VITE_POSTHOG_HOST>/decide/?v=3",
+      "https://github.com/generalaction/emdash/releases & https://api.github.com/repos/generalaction/emdash/releases/tags/v<ver> (electron-updater)",
+      "https://releases.emdash.sh (electron-updater generic channel & workspace-server artifacts)",
+      "https://auth.emdash.sh (Emdash Account PKCE OAuth & provider token broker)",
+      "https://emdash-feedback-relay.real-general-action.workers.dev (opt-in feedback modal relay)",
+      "https://emdash.com/api/waitlist (opt-in waitlist modal)"
+    ],
+    "ip_geo_handling": "No IP suppression ($ip: null and $geoip_disable: true absent on raw PostHog fetch() calls); additionally daily_active_user explicitly collects Intl.DateTimeFormat().resolvedOptions().timeZone",
+    "custom_model_handling": "Not collected (only agent provider ID e.g. claude/codex sent; customModel/modelName absent; zero prompt text or code sent)",
+    "docs_discrepancies": "UI calls telemetry 'anonymous usage data' while $identify/getBaseProps() attach plaintext email, github_username, and account_id + raw IP + timezone; conflicting doc URLs (README.md links emdash.com/docs/telemetry vs TelemetryCard.tsx links docs.emdash.sh/telemetry); no PRIVACY.md in repo; TELEMETRY_ENABLED=false still writes instanceId/lastSessionId/60s heartbeat to SQLite; install_source falls back to 'dmg' on packaged Windows/Linux builds",
+    "privacy_rating": "D",
+    "one_line_verdict": "Opt-out PostHog telemetry with no onboarding notice, missing IP suppression, plaintext PII identity stitching ($identify + base props) contradicting 'anonymous' UI copy, final setting_changed leak on opt-out, persistent ID/heartbeat writes when disabled, and unconditional startup `gh auth status --show-token` token harvesting."
+  },
+  {
+    "slug": "aether",
+    "platform": "Aether",
+    "group": "A",
+    "repo": "PrashnaLabs/aether",
+    "sha": "a9a941541dbd3a744ad9276afa56ddbdeb638632",
+    "commit_date": "2026-11-13T21:05:01+05:45",
+    "license": "MIT",
+    "status": "Active",
+    "default_state": "Zero telemetry/analytics/crash-reporting/auto-update; non-telemetry provider quota polling, OpenRouter model listing, and local agent/credential discovery run automatically on startup",
+    "opt_out_controls": "None needed for telemetry (none exists); no toggle to disable automatic startup/10m provider quota polling, startup OpenRouter list_models(), or LiteLLM pricing fetch on Usage view (Bottom Bar toggles hide UI only); web_search defaults Ask and can be disabled in Settings; notify_webhook defaults off",
+    "do_not_track": "Not checked (no telemetry exists)",
+    "opt_out_bypasses": "None for telemetry; hiding Usage entries in Settings > Bottom Bar only hides UI and does not stop background quota polling or credential reads",
+    "persistent_ids": "None (getrandom used only for ephemeral orchestrator tokens, ephemeral Claude session UUIDs, and temp dir names)",
+    "hashing": "None for identifiers or PII (sha256 verifies Whisper ggml-base.en.bin download integrity; DefaultHasher names local temp MCP config file from ephemeral token)",
+    "external_auth_reads": "Unconditional startup & 10m reads for quota display (never sent to developer): OS keychain 'Claude Code-credentials', ~/.claude/.credentials.json, ~/.claude.json, ~/.config/claude/credentials.json, ANTHROPIC_AUTH_TOKEN, CLAUDE_CODE_TOKEN, $CODEX_HOME/auth.json or ~/.codex/auth.json, local OpenCode service.json; also reads external CLI sessions/skills/configs/caches",
+    "telemetry_endpoints": "None (non-telemetry feature endpoints only: api.anthropic.com/api/oauth/usage, chatgpt.com/backend-api/wham/usage, openrouter.ai/api/v1/{models,credits}, raw.githubusercontent.com/BerriAI/litellm, optional huggingface.co whisper model, html.duckduckgo.com, hacker-news.firebaseio.com, user notify_webhook)",
+    "ip_geo_handling": "No telemetry or ingest pipeline; direct TLS/HTTP client connections to user-integrated provider/feature endpoints only",
+    "custom_model_handling": "Kept locally in settings.json and sent only to user's OpenRouter API during chat turns; LiteLLM pricing JSON is fetched statically and matched locally via normalize_model_name() without transmitting model names",
+    "docs_discrepancies": "No privacy policy; README does not disclose automatic startup/10m keychain/auth file reads (nor macOS keychain prompt risk), background quota polling, unauthenticated OpenRouter list_models(), or GitHub LiteLLM pricing fetch; Settings search mentions 'webhook' though UI lacks notify_webhook field; README omits Windows despite Windows release builds; main.rs calls dotenvy unconditionally",
+    "privacy_rating": "A",
+    "one_line_verdict": "Zero product telemetry, zero analytics/crash SDKs, zero persistent IDs, and zero update pings, though it automatically reads Claude/Codex local auth (including keychain) and polls provider quota/model endpoints on startup without an opt-out toggle."
+  },
+  {
+    "slug": "crystal",
+    "platform": "Crystal",
+    "group": "A",
+    "repo": "stravu/crystal",
+    "sha": "1e18e0bc981225f75b5226f82a300fa741970c6f",
+    "commit_date": "2026-02-26T16:44:09-05:00",
+    "license": "MIT",
+    "status": "Deprecated / Rebranded (succeeded by nimbalyst/nimbalyst)",
+    "default_state": "Mixed: full behavioral analytics defaults to false (opt-in), but minimal PostHog client (app_opened) and startup GitHub release check run unconditionally before consent and when disabled",
+    "opt_out_controls": "Consent modal ('No thanks') and Settings -> Analytics checkbox (however, the Settings footer 'Save Changes' button is a broken no-op on the Analytics tab; no CLI flag or env var disables minimalClient)",
+    "do_not_track": false,
+    "opt_out_bypasses": "AnalyticsManager unconditionally creates minimalClient and sends 'app_opened' on every launch when enabled===false plus 'analytics_opted_out' on decline; VersionChecker.checkOnStartup() ignores autoCheckUpdates===false",
+    "persistent_ids": "crystal_<crypto.randomUUID()> stored in ~/.crystal/config.json (analytics.distinctId), generated at startup and transmitted even when analytics is disabled",
+    "hashing": "Unsalted 16-char truncated SHA-256 of local session UUIDs (session_id_hash); no cross-provider user identity hashing",
+    "external_auth_reads": "None for telemetry; reads ~/.claude.json (MCP server config) and ~/.codex/sessions/*.jsonl (Codex UUID resume) strictly for local CLI orchestration",
+    "telemetry_endpoints": [
+      "https://us.i.posthog.com (PostHog SDK minimal + full clients, fallback https://app.posthog.com)",
+      "https://api.github.com/repos/stravu/crystal/releases/latest (startup & periodic update checks)"
+    ],
+    "ip_geo_handling": "No IP suppression or disableGeoip option configured on PostHog clients; PostHog ingests client IP and performs default GeoIP enrichment",
+    "custom_model_handling": "Not collected or transmitted to telemetry endpoints; model selections remain local to CLI arguments and SQLite panel settings",
+    "docs_discrepancies": "Settings UI claims 'When disabled, no analytics data will be collected or sent' while minimalClient still sends app_opened/analytics_opted_out with distinctId; README lacks any privacy/telemetry disclosure; integration docs omit minimalClient bypass and falsely state PostHog API key is configured in Settings; Analytics tab Save Changes button is non-functional",
+    "privacy_rating": "D",
+    "one_line_verdict": "Deprecated in favor of Nimbalyst; gates full PostHog analytics behind opt-in, but leaks persistent UUIDs, IP/GeoIP, and app_opened/opt-out pings via an unstoppable minimalClient bypass, breaks the Settings Analytics Save button, and misstates zero collection when disabled."
+  },
+  {
+    "slug": "nimbalyst",
+    "platform": "Nimbalyst",
+    "group": "A",
+    "repo": "nimbalyst/nimbalyst",
+    "sha": "044ff88a1ceb5b2d73686f777f8740ed0539bf1f",
+    "commit_date": "2026-11-23T15:34:13-05:00",
+    "license": "MIT",
+    "status": "Active (Successor to Crystal; closed-source wss://sync.nimbalyst.com Worker per LICENSING.md)",
+    "default_state": "ON by default (opt-out) across Electron Desktop (analyticsEnabled: true), iOS (AnalyticsManager.isEnabled = true), and Android (KEY_ANALYTICS_ENABLED = true); fails open to enabled on Desktop settings read errors",
+    "opt_out_controls": "Desktop Settings -> Advanced ('Send Anonymous Usage Data'), MCP tool analytics_set_enabled, env vars NIMBALYST_DISABLE_ANALYTICS=1 / PLAYWRIGHT=1 / PLAYWRIGHT_TEST; iOS Settings -> Privacy ('Usage Analytics'); Android Settings ('Send anonymous usage data'); CLI update-check opt-out via NIMBALYST_WIKI_NO_UPDATE_CHECK / CI",
+    "do_not_track": false,
+    "opt_out_bypasses": "iOS and Android AnalyticsManager.initialize() call PostHog.identify(distinctId) (and DEBUG $set is_dev_user) BEFORE calling PostHog.optOut() on opted-out launches; Desktop isAnalyticsEnabled() and allowedToSendAnalytics() fail open (return true) on store errors; Desktop/iOS/Android all fire an opt-out event right before sdk.optOut(); Desktop AutoUpdaterService polls GitHub Releases with autoDownload=true and no UI opt-out",
+    "persistent_ids": "Desktop PostHog: nimbalyst_<ulid> in analytics-settings.json; Mobile PostHog: nimbalyst_mobile_<uuid> in iOS Keychain / Android EncryptedSharedPreferences, stitched to desktop distinctId via QR pairing alias()+identify() and Stytch/onboarding email; Sync deviceId: Desktop sha256(computer-v1 + uuid seed + fs dev/ino + personalMemberId), iOS identifierForVendor + UIDevice.current.name, Android random UUID + Build.MODEL",
+    "hashing": "SHA-256 over random UUID seed + directory (dev, ino) + personalMemberId (32 hex chars) for desktop sync deviceId; PostHog sampling panel hashes distinct_id via sha256Hex server-side; NO unsalted external-account credential hashing",
+    "external_auth_reads": "Reads ~/.claude/.credentials.json, macOS Keychain ('Claude Code-credentials'), ~/.claude/settings.json, ~/.codex/auth.json + ~/.codex/sessions, and opencode.json strictly for local Claude usage meter (api.anthropic.com), local CLI orchestration, and user-initiated Cloudflare Sandbox provisioning \u2014 NOT transmitted to PostHog or telemetry endpoints",
+    "telemetry_endpoints": [
+      "https://us.i.posthog.com (PostHog SDKs across Electron main/renderer, iOS, Android; project phc_s3lQIILexwlGHvxrMBqti355xUgkRocjMXW4LjV0ATw)",
+      "wss://sync.nimbalyst.com / https://sync.nimbalyst.com & fallback https://collabv3.nimbalyst.workers.dev (closed-source Cloudflare Worker sync/relay; plaintext JWT, platform/version, device names, push payloads, fleet activity + E2EE transcripts)",
+      "https://api.stytch.com/v1 & https://console.nimbalyst.com (Stytch auth & console web flows)",
+      "https://github.com/nimbalyst/nimbalyst (electron-updater auto-updates)",
+      "https://extensions.nimbalyst.com/registry & https://cdn.extensions.nimbalyst.com (extension marketplace)",
+      "https://registry.npmjs.org/@nimbalyst/cli/latest & https://raw.githubusercontent.com/nimbalyst/nimbalyst-wiki/main/ (CLI/plugin daily update check)",
+      "APNs (api.push.apple.com via sync worker) & optional FCM (Android if google-services.json present)",
+      "https://api.anthropic.com/api/oauth/usage (local Claude quota meter)"
+    ],
+    "ip_geo_handling": "No IP suppression on any client: Electron main explicitly configures privacyMode: true with disableGeoip: false; renderer posthog.init, posthog-ios, and posthog-android omit ip=false / GeoIP disable options, allowing PostHog IP/GeoIP enrichment",
+    "custom_model_handling": "Verbatim model identifiers emitted on mobile_session_created (100% ingested), mobile_meta_agent_created, mobile_action_prompt_launched_new_session, codex_session_started (12.5% sampled), ai_model_selected (dropped server-side), and ai_thinking_mode_changed (dropped server-side)",
+    "docs_discrepancies": "README.md, AdvancedPanel.tsx, ANALYTICS_GUIDE.md, and POSTHOG_EVENTS.md claim Nimbalyst never collects emails, IP addresses, or PII, whereas onboardingAnalytics.ts and iOS/Android AnalyticsManager explicitly send plaintext email via PostHog $set (kept by server-side KEPT_PERSON_PROPERTIES) and AnalyticsService sets disableGeoip: false; ANALYTICS_GUIDE.md also claims opted-out users still emit nimbalyst_session_start retention pings, which current AnalyticsService.setSessionId() actually skips",
+    "privacy_rating": "D",
+    "one_line_verdict": "Removes Crystal's minimalClient bypass and gates desktop events via fail-closed renderer consent, but defaults telemetry ON across desktop/mobile, sends plaintext email PII + cross-device alias stitching + GeoIP in contradiction of README/UI no-PII claims, emits verbatim custom model names, fails open on desktop store errors, and runs PostHog identify() before optOut() on opted-out mobile launches."
+  },
+  {
+    "slug": "paradev",
+    "platform": "Paradev (Superset)",
+    "group": "A",
+    "repo": "ParadevAI/Paradev",
+    "sha": "296f25b450ca126aa2df291dbe905ab48ff15294",
+    "commit_date": "2026-11-24T16:44:41-06:00",
+    "license": "MIT",
+    "status": "Active (superset-sh/superset redirects here)",
+    "default_state": "ON by default across Desktop (main + renderer + host-service), Mobile (100% session replay), CLI, SDK, Cloud API (1% tRPC procedure sampling), Web, Docs, and Marketing",
+    "opt_out_controls": "JS SDK only: SUPERSET_TELEMETRY=0 or false (packages/sdk/src/lib/telemetry.ts:52-55). Desktop UI/DB toggle was dropped (0018_add_delete_local_branch_setting.sql:2) and replaced with hardcoded true / no-op stubs (settings/index.ts:663-672). No opt-out in Desktop, CLI, Host-Service, Mobile, Web, or Docs. Marketing banner sets localStorage opt-out for PostHog/LeadConnector only; macOS-only DISABLE_UPDATE_CHECK disables desktop auto-updater.",
+    "do_not_track": "Ignored (0 matches across repository)",
+    "opt_out_bypasses": "1) Desktop getTelemetryEnabled hardcoded to true and setTelemetryEnabled is a silent no-op (apps/desktop/src/lib/trpc/routers/settings/index.ts:663-672), while TelemetrySync forces posthog.opt_in_capturing(); 2) Marketing unconditionally loads Google Ads gtag and Reddit Pixel PageVisit in <head> before/despite cookie opt-out (apps/marketing/src/app/[lang]/layout.tsx:150-169); 3) CLI/Host-Service/Desktop ignore SUPERSET_TELEMETRY=0; 4) Server-side clientTelemetry captures 1% of API calls independently of client settings.",
+    "persistent_ids": "1) Raw OS machine ID (IOPlatformUUID / /etc/machine-id / Registry MachineGuid) used locally for AES-256-GCM auth-token encryption (packages/shared/src/host-info.ts:14-69); 2) Fixed-salt HMAC-SHA256 hostId (salt 'superset-desktop-device-id-v1', truncated to 32 hex chars) transmitted to cloud host.ensure, PostHog (host_id, client_machine_id), and leaderboard (host-info.ts:8, 74-103); 3) Shared Better Auth user.id + email + name + cross-subdomain cookie ('superset') stitching Desktop, Mobile, Web, Marketing, Docs, CLI, SDK, and Billing into one PostHog project.",
+    "hashing": "HMAC-SHA256 with fixed static salt 'superset-desktop-device-id-v1' for machine/host ID; unsalted SHA-256 for Claude OAuth access tokens (claude.ts:244), Claude [accountUuid, organizationUuid] (read-claude-quota-identity.ts:17), Codex auth.json (usage.ts:202-204), CLAUDE_CONFIG_DIR Keychain suffixes (profiles.ts:75-94), and Stripe PostHog UUIDs (billing-analytics.ts:38-47); unsalted MD5 of cwd for Cursor chat dirs (cursor.ts:234).",
+    "external_auth_reads": "Automatically every 5m via RailUsage (showRailUsage defaults true) and on-demand: reads macOS Keychains ('Claude Code-credentials*', 'cursor-access-token'/'cursor-user', 'gemini'/'antigravity') and files (~/.claude/.credentials.json, ~/.config/claude/credentials.json, ~/.claude.json, ~/.codex*/auth.json, ~/.grok/auth.json, <data>/opencode/auth.json, ~/.copilot/session-store.db, <data>/devin/cli/sessions.db, ~/.hermes/state.db, ~/.fx/sessions, ~/.pi, ~/.omp, ~/.gemini/antigravity-cli/brain, gh api user, git user.name) plus on-demand Chromium Cookies/History & Safe Storage Keychains. Scans competitor worktree dirs (Conductor, T3Code, Orca, Emdash, Claude Squad, Cursor, Herdr, Paseo) and reports competitor source names to PostHog (external_worktrees_offered).",
+    "telemetry_endpoints": "https://us.i.posthog.com & https://us-assets.i.posthog.com (direct + /ingest proxy on web/marketing/docs), *.ingest.sentry.io (+ /monitoring tunnel on web/marketing/docs), https://www.googletagmanager.com / googleadservices.com / doubleclick.net (Marketing), https://www.redditstatic.com / alb.reddit.com (Marketing), https://x.paradev.com/js/external-tracking.js -> https://backend.leadconnectorhq.com/external-tracking/events (Marketing), https://cloudflareinsights.com (Marketing), https://github.com/paradevai/paradev/releases (Desktop/CLI updaters), Expo Updates (Mobile), https://api.paradev.com / relay.superset.sh / realtime.superset.sh / streams.superset.sh, plus third-party AI quota APIs (Anthropic, ChatGPT, Cursor, Google cloudcode-pa, Grok).",
+    "ip_geo_handling": "Zero $geoip_disable or $ip suppression across PostHog; client IP exposed directly or via API/Next.js rewrites. Sentry sendDefaultPii is true in Web, API, Marketing, and Docs, and false in Desktop Main, Mobile, Relay, Realtime, and Usercontent.",
+    "custom_model_handling": "Verbatim custom model IDs sent to PostHog in Mobile (new_session_model_selected, chat_message_sent, workspace_create_requested) and Slack API (slack_model_changed, slack_message_sent), and to Postgres in opt-in leaderboard.publish; Desktop/Host-Service agent_launched masks custom preset to 'custom' + command_name basename.",
+    "docs_discrepancies": "1) Marketing comparison table (apps/marketing/content/compare/superset-vs-herdr.mdx:57) falsely claims Paradev has 'Product analytics, with controls in settings' after the setting and DB column were deleted; 2) Privacy Policy (privacy.mdx:31) claims no access to terminal commands/diagnostic data 'unless you explicitly choose to share diagnostic information' while Sentry (including host crash outputTail) and PostHog (git branch, custom command_name) run unconditionally without opt-out; 3) subprocessors.mdx omits Google Ads, Reddit Pixel, LeadConnector, Cloudflare Web Analytics, and Expo Updates, and marketing <head> executes ad tags even after opt-out.",
+    "privacy_rating": "F",
+    "one_line_verdict": "Severe red flags: Paradev explicitly deleted its desktop telemetry opt-out setting and replaced it with hardcoded true/no-op stubs while marketing docs still claim settings controls, runs 100% mobile session replay and unconditional CLI/desktop/host telemetry with zero DNT support, leaks git branches/custom commands/verbatim models across a unified PostHog identity, and continuously polls third-party AI CLI credentials and Keychains."
+  },
+  {
+    "slug": "orca",
+    "platform": "Orca",
+    "group": "A",
+    "repo": "stablyai/orca",
+    "sha": "14b04d30f631a5e49f2e649ce2f8ebb6832ddb6b",
+    "commit_date": "2026-11-25T04:55:09Z",
+    "license": "MIT",
+    "status": "Active",
+    "default_state": "ON by default on fresh official stable/rc CI builds (optedIn: true with no install-time onboarding notice); pending_banner (telemetry off until resolved) for upgraded pre-telemetry profiles; OFF/fail-closed on contributor/local/PR builds without ORCA_BUILD_IDENTITY & ORCA_POSTHOG_WRITE_KEY; local NDJSON diagnostic tracing ON by default (manual upload only); Crashpad auto-upload OFF; Mobile & Docs zero telemetry",
+    "opt_out_controls": [
+      "In-app UI toggle: Settings -> Privacy & Telemetry -> Share anonymous usage data (src/renderer/src/components/settings/privacy/PrivacyPane.tsx:106-133)",
+      "Pre-telemetry upgrader notice: Opt out button on FirstLaunchBanner (FirstLaunchBanner.tsx:99-107)",
+      "Env var DO_NOT_TRACK=1 or true (disables PostHog telemetry AND support diagnostic bundle uploads, retains local trace files)",
+      "Env var ORCA_TELEMETRY_DISABLED=1 or true (same semantics as DO_NOT_TRACK)",
+      "CI env vars CI, GITHUB_ACTIONS, GITLAB_CI, CIRCLECI, TRAVIS, BUILDKITE, JENKINS_URL, TEAMCITY_VERSION (disables PostHog + all local/upload diagnostics)",
+      "Env var ORCA_DIAGNOSTICS_DISABLED=1 or true (disables local diagnostic NDJSON logging + support uploads)"
+    ],
+    "do_not_track": true,
+    "opt_out_bypasses": [
+      "Pre-opt-out capture: setOptIn(via, false) calls ensurePostHogClient() and sends telemetry_opted_out (with install_id, session_id, OS props, cohorts) to us.i.posthog.com BEFORE calling client.optOut(), even when a pre-telemetry user clicks 'Opt out' from pending_banner (client.ts:262,278-290; posthog-transport.ts:70-73; opt-out-capture.ts:10-33)",
+      "FirstLaunchBanner close 'X' button calls handleAcknowledge() -> persistBannerAcknowledgeWithoutEmitting(), silently setting optedIn: true and firing app_opened (FirstLaunchBanner.tsx:112-121; client.ts:295-309)",
+      "Fresh installs receive no install-time disclosure in OnboardingFlow.tsx despite TelemetryFirstLaunchSurface.tsx:1 and FirstLaunchBanner.tsx:1 claiming new users receive install-time disclosure",
+      "installId UUIDv4 stays generated/persisted in profile settings even when opted out (loaded-cohort-migrations.ts:211-214), though DNT/ORCA_TELEMETRY_DISABLED/CI prevent all PostHog beacons including telemetry_opted_out"
+    ],
+    "persistent_ids": [
+      "install_id (random UUIDv4 in profile settings.telemetry.installId; retained across opt-out)",
+      "session_id (ephemeral per-launch UUIDv4)",
+      "bundle_submission_id (random per-upload ID isolated from install_id for manual diagnostic uploads)",
+      "exact_incarnation_correlation (v1:<sha256_32> of ephemeral daemon launchNonce in daemon_audit_eligibility)",
+      "Orca Cloud enterprise x-orca-client hostname label (only when signed into Orca Cloud org with desktopReporting enabled)"
+    ],
+    "hashing": "Unsalted domain-prefixed SHA-256 of installId locally for browser-extensions-banner UI bucketing (browser-extensions-banner.ts:38-43) and of ephemeral daemon launchNonce for daemon_audit_eligibility (daemon-audit-eligibility-event.ts:116-123); unsalted SHA-256(machineId) locally for orcad secret filename scoping only",
+    "external_auth_reads": "Extensive local non-telemetry reads for account hot-swap, quota meters, and cookie/theme import (~/.claude/.credentials.json & macOS Keychain Claude Code-credentials*, ~/.codex/auth.json, Cursor Keychain/state.vscdb/auth.json, ~/.grok/auth.json, Kimi credentials, ~/.zcode/v2/*, Safari/Chromium/Firefox cookies, Ghostty config) \u2014 zero evidence of credential/account exfiltration to PostHog or Orca Cloud. On onboarding ThemeStep mount (macOS), Ghostty config presence/diff size emits onboarding_ghostty_discovered. Gated WSL/TCC probes run only when isTelemetryEnabled() is true.",
+    "telemetry_endpoints": [
+      "https://us.i.posthog.com (PostHog US Cloud product telemetry, posthog-node)",
+      "https://orca.dev/v1/feedback (manual feedback, crash reports, mobile connection diagnostics)",
+      "https://orca.dev/diagnostics/token & https://orca.dev/... upload_url (manual preview-gated diagnostic NDJSON bundle uploads)",
+      "https://login.onorca.dev, https://relay.onorca.dev, https://connector.orca.dev, https://push.onorca.dev (optional Orca Cloud OAuth, enterprise desktop reporting header, mobile relay & push; Workers Analytics Engine metrics record edge continent/colo & country)",
+      "https://orca.dev/plugins/kill-list.json & https://orca.dev/plugins/stats.json (6h background plugin revocation & install-stats fetches)",
+      "https://github.com/stablyai/orca/releases* & https://api.github.com/repos/stablyai/orca/releases (desktop/mobile updaters & 4h live agent-state-rules / wsl-hosts-policy JSON fetches)",
+      "https://itunes.apple.com/lookup?bundleId=com.stably.orca.mobile (mobile iOS update checks)",
+      "https://cdn.agentclientprotocol.com/registry/v1/latest/registry.json, https://registry.npmjs.org/<pkg>/latest, https://api.github.com/repos/<repo>/releases/latest, https://downloads.claude.ai/claude-code-releases (hourly agent CLI version checks)"
+    ],
+    "ip_geo_handling": "PostHog client explicitly sets disableGeoip: true and credentials: 'omit' with $process_person_profile: false per event (posthog-transport.ts:86-91; client.ts:248), though standard HTTPS requests still reach us.i.posthog.com; cloud relay-edge and connector-wake Workers log Cloudflare continent/colo & country in Analytics Engine",
+    "custom_model_handling": "CLEAN \u2014 model names are never collected in telemetry schemas; agent_kind uses strict enum allow-list with tuiAgentToAgentKind fallback to 'other' (src/shared/agent-status/identity/agent-kind.ts:56-58; telemetry-property-schemas.ts:11-58)",
+    "docs_discrepancies": [
+      "docs/site/content/docs/telemetry.mdx:45 claims 'No raw error messages or stack frames' yet main_thread_hang_detected automatically sends native_top_frames (up to 24 redacted macOS native stack frames) and macos_build",
+      "telemetry.mdx:46 claims 'Orca has no account system' despite Orca Cloud OAuth (login.onorca.dev) and enterprise x-orca-client hostname reporting (desktop-client-report.ts:49-73)",
+      "telemetry.mdx:47 claims country is derived from requests while posthog-transport.ts:86 sets disableGeoip: true",
+      "telemetry.mdx:29 documents retired 10%-sampled tab_close_* events no longer emitted (telemetry-app-event-schemas.ts:32-34)",
+      "telemetry.mdx omits wsl_usage_snapshot, main_thread_hang_detected, daemon_pty_cwd_denial_capture, daemon_audit_eligibility, per-event A/B cohort tags, onboarding_ghostty_discovered, star_nag_outcome, browser_extensions_*, and migration events",
+      "TelemetryFirstLaunchSurface.tsx:1 and FirstLaunchBanner.tsx:1 comments claim new users get install-time disclosure, which OnboardingFlow.tsx lacks",
+      "telemetry.mdx:54,58 names Settings -> Privacy instead of Settings -> Privacy & Telemetry"
+    ],
+    "privacy_rating": "C",
+    "one_line_verdict": "Well-intentioned schema hygiene earning C (Zod .strict(), no model names, disableGeoip: true, $process_person_profile: false, strict DNT/CI gating, clean mobile/docs, local-only Crashpad/traces), held below B by default-on tracking without promised onboarding disclosure, pre-opt-out telemetry_opted_out beacons before client.optOut(), FirstLaunchBanner X-dismiss silent opt-in, retained installId, and material docs contradictions on hang stack frames and Orca Cloud accounts."
+  },
+  {
+    "slug": "pane",
+    "platform": "Pane",
+    "group": "A",
+    "repo": "https://github.com/greenfield-inc/Pane",
+    "sha": "25299c46356c369ea0ecd99355419be211fac89d",
+    "commit_date": "2026-11-24T16:08:12-08:00",
+    "license": "AGPL-3.0",
+    "status": "Active",
+    "default_state": "ON by default for desktop PostHog analytics (via runpane.com/api/c), 24h app_heartbeat, manual JS $exception / runpane_local_control_failed, app_closed, and runpane npm/PyPI CLI wrapper telemetry; OFF by default for Leaderboard (optIn: false), Headless daemon analytics, Mobile (native/mobile), Even G2 glasses, and Remote PWA",
+    "opt_out_controls": [
+      "Settings -> Privacy -> Allow product analytics toggle (PrivacySettings.tsx:81-88)",
+      "Config file <PANE_DIR>/config.json key analytics.enabled: false (checked by desktop and valid-JSON runpane CLI wrappers)",
+      "Env vars DO_NOT_TRACK=1 or non-empty RUNPANE_TELEMETRY_DISABLED (plus CI env vars for CLI wrappers only)",
+      "autoCheckUpdates: false disables Electron autoUpdater and VersionChecker startup/periodic checks",
+      "Leaderboard requires explicit opt-in and honors DO_NOT_TRACK env or login-shell probe"
+    ],
+    "do_not_track": "Partial (DO_NOT_TRACK=1 stops event/heartbeat emission and CLI wrapper telemetry, while DO_NOT_TRACK=true is ignored; LeaderboardService honors any non-0/false DO_NOT_TRACK; desktop still runs gh api user, git config --global, installId creation, and PII config.json writes when DO_NOT_TRACK=1)",
+    "opt_out_bypasses": [
+      "frontend/src/App.tsx:561 + main/src/index.ts:1310-1338 unconditionally run analytics:get-identity when analyticsEnabled is false or DO_NOT_TRACK=1, spawning gh api user (outbound GitHub API network call), reading git config --global, creating installId, and writing plaintext PII to config.json and PostHog localStorage",
+      "PrivacySettings.tsx:57-71 re-runs resolveIdentity() and sends direct fetch() $create_alias (installId & attribution_ref) plus analytics_opted_out with plaintext PII AFTER saving analytics.enabled: false",
+      "packages/runpane/src/telemetry.ts:279-281,352 & telemetry.py:201-206,277 fail open on malformed config.json, falling back to runpane-wrapper-identity.json and emitting telemetry",
+      "OpenRouterPriceProvider.start() unconditionally fetches https://openrouter.ai/api/v1/models on startup and every 6h regardless of analytics opt-out"
+    ],
+    "persistent_ids": [
+      "<PANE_DIR>/config.json analytics.installId (install_<uuidv4>, created unconditionally when disabled, shared across desktop, npm/PyPI runpane wrappers, and leaderboard)",
+      "<PANE_DIR>/runpane-wrapper-identity.json (fallback install_<uuidv4> if config.json fails JSON parse)",
+      "config.json analytics.distinctId & PostHog localStorage (email:<lower>, github:<login>, git_name:<lower>, or install:<id>)",
+      "<PANE_DIR>/attribution_ref (webDistinctId stitched into desktop profile via $create_alias)"
+    ],
+    "hashing": "Unsalted SHA-256 of lowercase trimmed email (gitEmailHash / git_email_sha256) sent alongside plaintext github_email, git_email, github_username, and git_user_name; unsalted 16-char truncated SHA-256 of paneId/panelId for local logs; $create_alias stitches web visitor, installId, and email/GitHub identities",
+    "external_auth_reads": "Telemetry runs gh api user (.login, .email) and git config --global (user.email, user.name) unconditionally on every desktop launch (even when opted out). Non-telemetry local/paired features read ~/.claude.json & ~/.codex/auth.json (usageAccounts.ts), ~/.ssh/config (sshConfigHosts.ts), and ~/.claude, ~/.codex, Conductor, T3 Code, Paradev, Herdr, Emdash, Orca stores (sessionImport) \u2014 verified not exfiltrated to PostHog or Leaderboard",
+    "telemetry_endpoints": [
+      "https://runpane.com/api/c/capture/ (PostHog ingest proxy for desktop events, heartbeat, $exception, app_closed; legacy us.i.posthog.com migrated)",
+      "https://runpane.com/api/runpane/telemetry (npm & PyPI runpane CLI wrapper download/error telemetry)",
+      "https://runpane.com/api/runpane/leaderboard/submit & /api/runpane/leaderboard (opt-in leaderboard)",
+      "GitHub CLI gh api user HTTPS requests (unconditional launch identity lookup)",
+      "https://openrouter.ai/api/v1/models (unconditional 6h pricing sync)",
+      "https://api.github.com/repos/greenfield-inc/Pane/releases/latest & GitHub Releases (desktop auto-updater / VersionChecker)",
+      "https://runpane.com/api/download (CLI wrapper downloads, GitHub fallback)",
+      "https://pane-native-updates-297294606300.us-central1.run.app/manifest (Expo OTA updates with nginx access_log off)"
+    ],
+    "ip_geo_handling": "Zero $geoip_disable or $ip:null flags in PostHog SDK, directCapture(), main postCapture(), or CLI wrappers behind closed-source runpane.com/api/c proxy; docs/ANALYTICS_INVARIANTS.md:119-120 confirms PostHog derives location from request IP. Positive exception: mobile OTA nginx disables access_log and relay cloud logging writes aggregate counts only",
+    "custom_model_handling": "Session analytics events emit only tool_type (no coding model names); voice_transcription_used emits hardcoded cleanup_model ('google/gemini-3.1-flash-lite') and deepgram_model_name; opt-in LeaderboardService sends up to 50 verbatim raw byModel[].model strings from local transcripts without masking",
+    "docs_discrepancies": [
+      "claude-plugin/README.md:41 calls wrapper ID a 'random install id' and packages/runpane/README.md:520 calls it 'anonymous install_id', whereas it persists in shared config.json and is $create_alias-linked to plaintext GitHub/Git email and username",
+      "docs/ANALYTICS_INVARIANTS.md:62-73 & CONTRIBUTING.md:73-76 claim analytics.enabled:false / DO_NOT_TRACK=1 / RUNPANE_TELEMETRY_DISABLED=1 stop analytics work and config writes, whereas App.tsx:561 + main/src/index.ts:1310-1338 still execute gh api user, git config, installId creation, and PII writes into config.json",
+      "docs/ANALYTICS_INVARIANTS.md:104-108 & PrivacySettings.tsx:84 omit that toggling analytics OFF re-runs gh api user and fires direct $create_alias HTTP calls + plaintext PII on analytics_opted_out after saving enabled:false",
+      "No in-repo PRIVACY.md or privacy policy source; README.md omits default-on PostHog telemetry disclosure"
+    ],
+    "privacy_rating": "D",
+    "one_line_verdict": "Default-on PostHog and CLI wrapper telemetry with UI/config/DO_NOT_TRACK=1 controls, downgraded to D due to unconditional launch gh api user network calls and config.json PII/installId writes even when opted out, post-opt-out direct $create_alias and plaintext PII transmissions, unsalted email hashing, missing IP suppression behind closed-source runpane.com/api/c, wrapper fail-open on malformed config.json, and 'random/anonymous' ID doc claims."
+  },
+  {
+    "slug": "traycer",
+    "platform": "Traycer",
+    "group": "A",
+    "repo": "https://github.com/traycerai/traycer",
+    "sha": "15cdf06c24fd6e4e76a7f31a31efa40af0aaa5b7",
+    "commit_date": "2026-11-25T08:15:38+05:30",
+    "license": "MIT",
+    "status": "Active",
+    "default_state": "OFF in unconfigured source builds (empty keys); ON unconditionally in shipped release builds (VITE_POSTHOG_KEY + Sentry DSNs baked at build time)",
+    "opt_out_controls": "None (zero UI toggles, CLI flags, config keys, or runtime env vars for PostHog or Sentry; account privacyMode is unread by client telemetry)",
+    "do_not_track": "Ignored (neither DO_NOT_TRACK nor navigator.doNotTrack is checked)",
+    "opt_out_bypasses": "No opt-out mechanism exists to bypass; enabling account privacyMode only hides server-side prompt logs and leaves client PostHog and Sentry telemetry active",
+    "persistent_ids": "PostHog SDK persisted $device_id UUID ($anon_distinct_id) linked via $identify/$set to Traycer userId UUID + plaintext email, plus $session_id and $window_id; CLI host crash reports send unhashed persistent hostId as Sentry user.id",
+    "hashing": "No hashing of userId, email, or hostId in telemetry (plaintexts sent); SHA-256 used only for artifact integrity and team-install token receipt verification",
+    "external_auth_reads": "User-initiated Desktop browser cookie/login import (Chrome/Edge/Brave/Arc/Vivaldi/Opera/Aside/Helium/Firefox/Safari + OS keystores on explicit Import only); host scans ~/.claude and ~/.codex only when Session Import UI is open; workspace-local .claude/scheduled_tasks.json read by CLI; closed-source traycer-host checks provider auth per protocol/provider-auth.md",
+    "telemetry_endpoints": "https://us.i.posthog.com (PostHog); build-stamped Sentry DSNs (@sentry/electron main/renderer, @sentry/browser mobile, @sentry/node CLI); releases.traycer.ai, github.com, api.github.com (updates); assets.traycer.ai (wallpapers/preconnect); authn.traycer.ai, server.traycer.ai, traycer.ai, wss://relay.traycer.ai/attach (first-party cloud)",
+    "ip_geo_handling": "PostHog omits ip: false and $geoip_disable: true (IP/GeoIP collected by us.i.posthog.com); Desktop and Mobile Sentry set sendDefaultPii: false and strip HTTP cookies/headers; CLI Sentry relies on @sentry/node ^10.76.2 default false",
+    "custom_model_handling": "Clean: custom/private LLM model names are never sent to PostHog or Sentry; only closed AnalyticsHarness and AnalyticsProvider enum allowlists are permitted",
+    "docs_discrepancies": "README and Mintlify docs state Sentry/PostHog 'may be enabled' and events link to accounts, but omit that release builds have zero user opt-out or DNT support, send plaintext email to PostHog without IP/GeoIP suppression, and ignore Privacy Mode for client telemetry",
+    "privacy_rating": "D",
+    "one_line_verdict": "Strict content/path redaction and minidump protections, but release builds force-enable PostHog and Sentry with zero user opt-out/DNT, send plaintext email + unmasked IP/GeoIP to PostHog, and leave traycer-host closed-source."
+  },
+  {
+    "slug": "happy",
+    "platform": "Happy",
+    "group": "A",
+    "repo": "slopus/happy",
+    "sha": "cd91953de600de2db4b67d3726459bae5d925a5b",
+    "commit_date": "2026-11-24T19:46:30-08:00",
+    "license": "MIT",
+    "status": "Active",
+    "default_state": "ON by default in release mobile apps (happy-ios, happy-android) for PostHog analytics, PostHog /flags, and crash diagnostics when PostHog API keys are configured (gated on account-settings read); OFF / zero product analytics in happy-cli, HappyMacApp, happy-server, happy-server-rs, and happy-push-server",
+    "opt_out_controls": [
+      "iOS UI device-wide switch in Settings (Analytics.shared.setDeviceOptOut -> UserDefaults suite 'happy-analytics' key 'analytics.deviceOptOut')",
+      "iOS UI per-account switch in Account Settings (session.updateSettings analyticsOptOut; any opted-out signed-in account disables analytics device-wide)",
+      "Android UI device-wide switch in Settings > Privacy (AnalyticsSwitch -> SharedPreferences 'analytics' key 'device_on')",
+      "Android UI per-account switch in Account Settings (settings.analyticsOptOut; any opted-out signed-in account calls Analytics.revoke())",
+      "Debug/test/automation builds disable analytics automatically unless loopback capture host env/sysprop is set",
+      "happy-cli / HappyMacApp / servers ship zero product telemetry (CLI remote logging DANGEROUSLY_LOG_TO_SERVER_FOR_AI_AUTO_DEBUGGING is OFF by default)"
+    ],
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "No DO_NOT_TRACK support in code (docs/analytics-catalog.json:1213 defers DO_NOT_TRACK=1 to an external desktop app)",
+      "PostHog /flags?v=2 calls on iOS and Android omit $ip:null / $geoip_disable:true suppression properties (though /flags stops on opt-out)",
+      "NativeUpdateCheck (POST /v1/version) fires unauthenticated at launch/foreground on iOS and Android regardless of analytics opt-out",
+      "iOS AnalyticsConsent initializes deviceOptOut via UserDefaults.string(forKey:) != nil (fails open if a non-string value were stored, though normal UI writes '1' or nil and accounts fail closed); CrashReports keeps MXMetricManager subscribed after opt-out (events dropped at Analytics.shared.log)"
+    ],
+    "persistent_ids": [
+      "Ephemeral per-install random UUIDv4 distinct_id ('analytics.installID' in iOS UserDefaults / 'install_id' in Android SharedPreferences) \u2014 DELETED on opt-out",
+      "RevenueCat anonymous UUIDv4 '$RCAnonymousID:<32hex>' persisted per install and written into StoreKit appAccountToken / Play obfuscatedAccountId",
+      "Expo installation UUID in iOS Keychain ('EXDeviceInstallationUUIDKey') and Android noBackupFilesDir ('expo_notifications_installation_uuid.txt'), also sent to paired Happy Agents as deviceId",
+      "CloudPush 'cloudPush.device' UUID in iOS UserDefaults (suite 'happy-ios.cloud-push') / installationId on Android stored in happy-push-server Cloudflare D1",
+      "CLI machineId randomUUID() in ~/.happy/settings.json sent as plaintext Machine.id",
+      "Account.id CUID and server-computed ElevenLabs HMAC-SHA256 user ID ('u_<base64url>')"
+    ],
+    "hashing": "KeyTree HMAC-SHA512 / key derivation from account masterSecret yields 16-hex-char anonID (['analytics', 'id']) kept local and NOT sent to PostHog, plus unused providerAccountKey (['analytics', 'provider-account']). ElevenLabs voice user ID uses server HMAC-SHA256(HANDY_MASTER_SECRET, userId).",
+    "external_auth_reads": "None in analytics. happy-cli reads ~/.gemini/{oauth_creds,config,auth}.json + ~/.config/gemini/* + gcloud application-default access token (for happy gemini), ~/.claude/settings.json & ~/.claude/projects/* (Claude launcher/transcript mirroring), ~/.openclaw/openclaw.json (gateway token & existence check), and ~/.codex/skills (skill listing). Explicit 'happy connect {codex,claude,gemini}' uploads vendor OAuth tokens encrypted on happy-server with server-held HANDY_MASTER_SECRET (not zero-knowledge E2EE).",
+    "telemetry_endpoints": [
+      "https://us.i.posthog.com/batch/ (mobile analytics & app_crashed, custom direct HTTP client, no PostHog SDK)",
+      "https://us.i.posthog.com/flags?v=2 (iOS) and https://us.i.posthog.com/flags/?v=2 (Android) (PostHog feature flags)",
+      "https://api.revenuecat.com/v1/subscribers/* & /v1/receipts (mobile direct REST client)",
+      "https://api.elevenlabs.io/v1/convai/* (server voice proxy) and ElevenLabs WebRTC/LiveKit SDK (client audio & call context)",
+      "https://exp.host/--/api/v2/push/getExpoPushToken & /send (mobile, happy-server, happy-cli fallback, happy-push-server)",
+      "https://push.cluster-fluster.com/v1/devices/register (happy-push-server Cloudflare Worker -> APNs/FCM/Expo)",
+      "https://api.cluster-fluster.com (default Happy relay, POST /v1/version, POST /v1/sessions/:id/push-event, Socket.IO usage-report)",
+      "https://auth.happy.engineering, https://api.happy-clusters.com, https://happybases.com, https://join.happy.engineering (Happy Cloud)"
+    ],
+    "ip_geo_handling": "Mixed: mobile /batch/ requests explicitly strip device fingerprint fields and send $ip: null and $geoip_disable: true (though direct TLS connections to us.i.posthog.com still expose client IP at transport layer); however, mobile POST /flags?v=2 requests to us.i.posthog.com omit $ip: null and geoip suppression parameters. happy-push-server reads Cloudflare cf-connecting-ip for rate limiting.",
+    "custom_model_handling": "Cleanly masked via strict prefix allowlist (ModelFamily in AnalyticsCatalog.swift:212-230 & AnalyticsEvent.kt:438-463): any unknown, custom, local, or self-hosted model ID maps strictly to 'other' and raw model strings never leave the device.",
+    "docs_discrepancies": [
+      "PRIVACY.md:30 claims 'What we never send: ... stack traces', directly contradicted by app_crashed sending top 5 crash_frames + exception_class + binary_id (CrashSignature.swift, CrashSignature.kt)",
+      "PRIVACY.md:69-73 claims push notifications are sent device-to-device 'not from our backend' and 'We never see the content of your notifications', contradicted by happy-cli posting plaintext title/body (summary text or folder name) via happy-server POST /v1/sessions/:sessionId/push-event and happy-push-server relaying tokens/notifications",
+      "PRIVACY.md:25,28,29,53 describes retired Expo SDK behavior (account-derived PostHog ID, provider-account hash, device model/timezone/screen/city GeoIP), contradicting native mobile's ephemeral install_id, stripped SDK metadata, and $ip:null / $geoip_disable:true on /batch/ (while missing /flags GeoIP omission)",
+      "PRIVACY.md:12,78-81 omits plaintext server UsageReport (tokens/cost), server HANDY_MASTER_SECRET custody of ServiceAccountToken/GithubUser tokens, happy-push-server D1 device metadata (locale), and unauthenticated POST /v1/version update pings",
+      "PRIVACY.md and docs/analytics-catalog.json:1213 still reference removed happy-app/web/Desktop/DO_NOT_TRACK=1 flows not present in this repository"
+    ],
+    "privacy_rating": "C",
+    "one_line_verdict": "Strong privacy-engineered mobile analytics pipeline earning C (zero third-party analytics/crash SDKs, custom model masking to 'other', /batch/ $ip:null + $geoip_disable:true, ephemeral install_id deleted on opt-out, zero telemetry in CLI/Mac/servers), held below B by default-on mobile analytics lacking DO_NOT_TRACK, missing IP/GeoIP suppression on direct PostHog /flags?v=2 requests, unauthenticated launch/foreground /v1/version pings, and material PRIVACY.md contradictions denying stack traces (crash_frames) and backend push-content routing."
+  },
+  {
+    "slug": "aionui",
+    "platform": "AionUi",
+    "group": "A",
+    "repo": "https://github.com/iOfficeAI/AionUi",
+    "sha": "e108b6b56b1a6eb99a00904878d0582f657b2908",
+    "commit_date": "2026-11-05T05:31:17Z",
+    "license": "Apache-2.0",
+    "status": "Active",
+    "default_state": "ON by default (CI-baked SENTRY_DSN enables crash capture, persistent device UUID, 24h automatic 19 MiB unredacted log upload via startup-log-report, silent Windows NSIS failure upload, and 3s startup CDN update checks)",
+    "opt_out_controls": "None for telemetry/Sentry (no Settings UI toggle, no config key, no CLI flag, and Vite define inlines SENTRY_DSN at compile time so runtime env override fails; auto-updater only skips if AIONUI_DISABLE_AUTO_UPDATE=1, AIONUI_E2E_TEST=1, CI=true, or compile-time IS_DISCONTINUED_BUILD=true)",
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "No user opt-out mechanism exists anywhere in UI, config, or CLI",
+      "Vite build-time define hardcodes process.env.SENTRY_DSN literal in main & renderer bundles",
+      "Automatic 24h startup-log-report gzips and uploads unredacted daily frontend + backend logs (up to 19 MiB) silently 30s after launch",
+      "Windows NSIS installer ${Silent} mode (background auto-update) auto-executes AIONUI_REPORT_TO_SENTRY_NOUI without user prompt",
+      "Electron --webui and --resetpass CLI submodes still run initSentry() and setSentryDeviceId()"
+    ],
+    "persistent_ids": [
+      "userData/analytics.json random UUIDv4 bound to global Sentry.setUser({ id }) and tags.device_id",
+      "Windows %APPDATA%/AionUi/analytics.json & %LOCALAPPDATA%/AionUi/analytics.json read by installer PowerShell reporter",
+      "Per-install 12-char GUID $AionUiSessionId in Windows NSIS installer reports"
+    ],
+    "hashing": "None (random UUID stored and sent plaintext; no hardware ID or email hashing)",
+    "external_auth_reads": "None in TypeScript/Electron/NSIS code (clean on ~/.claude, ~/.codex, ~/.ssh, ~/.aws, ~/.gemini, ~/.cursor auth files; non-auth reads limited to ~/.nvm/versions/node on Unix and Windows PATH registry keys + PowerShell/bash/zsh profiles for PATH hydration; prebuilt aioncore Rust binary source is external in iOfficeAI/AionCore)",
+    "telemetry_endpoints": [
+      "Compile-time SENTRY_DSN (Sentry ingest /api/<projectId>/envelope/ via @sentry/electron and NSIS PowerShell Invoke-RestMethod)",
+      "https://static.aionui.com/releases (auto-updater & manual update channel manifests + binaries)",
+      "https://api.github.com/repos/iOfficeAI/AionUi/releases (manual update release notes enrichment & fallback asset downloads)",
+      "HTTP-Referer: https://aionui.com & X-Title: AionUi headers sent to user-configured OpenAI-compatible LLM endpoints"
+    ],
+    "ip_geo_handling": "sendDefaultPii not set; no $geoip_disable/$ip or beforeSend IP scrubbing; direct HTTPS connections to Sentry and static.aionui.com expose client IP to ingest endpoints",
+    "custom_model_handling": "Unredacted model/platform/provider IDs logged by runBackendMigrations.ts are shipped automatically in 24h startup-log-report logs; manual feedback db-diagnostics.json.gz also includes provider/model IDs and unredacted conversation titles",
+    "docs_discrepancies": [
+      "readme.md:580 and 8+ translated docs/readme/* files state 'All data is stored locally in a SQLite database. Nothing is uploaded to any server.' while Sentry crash capture, persistent device UUID, 24h startup-log-report, silent NSIS failure reports, and startup CDN checks run by default",
+      "No privacy policy or user disclosure for analytics.json UUID tracking or automatic 24h startup-log-report uploads, despite CONTRIBUTING.md:29 referencing 'Sentry user tracking'",
+      "aioncore backend binary is built from external repo iOfficeAI/AionCore rather than source in this repository"
+    ],
+    "privacy_rating": "F",
+    "one_line_verdict": "Ships always-on Sentry tracking with a persistent UUID and automatic unredacted 19 MiB daily log uploads with zero opt-out controls, while falsely claiming across its README that 'Nothing is uploaded to any server.'"
+  },
+  {
+    "slug": "opcode",
+    "platform": "Opcode (Claudia)",
+    "group": "A",
+    "repo": "winfunc/opcode",
+    "sha": "c24004d3bbc910bd30b49d402daec254dac26ab2",
+    "commit_date": "2026-11-06T19:53:42+05:30",
+    "license": "AGPL-3.0",
+    "status": "Active (getAsterisk/claudia redirects here)",
+    "default_state": "Opt-out (ON by default on first launch across Tauri desktop and opcode-web mode via hardcoded PostHog key and silent enabled: true, hasConsented: true defaults; AnalyticsConsent/Banner are unmounted dead code and check !hasConsented)",
+    "opt_out_controls": "Settings -> General -> Enable Analytics switch (sets localStorage['opcode-analytics-settings'].enabled = false and calls posthog.opt_out_capturing() before trailing settings_changed check); no env var or CLI flag",
+    "do_not_track": false,
+    "opt_out_bypasses": "Unconditional <PostHogProvider capture_exceptions: true> ignores ConsentManager if VITE_PUBLIC_POSTHOG_* env vars are supplied at build time (unset in CI workflows); AnalyticsService.setScreen() calls posthog.capture('$screen') without checking isEnabled(); ConsentManager.deleteAllData() silently resets enabled: true and hasConsented: true (currently uncalled in UI); persistent userId, per-launch sessionId, 5s flush timer, and 2m ResourceMonitor interval stay active when disabled (dropped at track()); shutdown() flushes without isEnabled() check",
+    "persistent_ids": "Random UUID v4 userId in localStorage['opcode-analytics-settings'] (retained across opt-out) + PostHog persistence: 'localStorage' + per-launch in-memory sessionId; plus raw hyphenated session/checkpoint UUIDs leaked in checkpoint_id on session_resumed and checkpoint_restored",
+    "hashing": "None (random Math.random() UUID v4 only; zero hardware/machine IDs, emails, or account identifiers)",
+    "external_auth_reads": "None (reads ~/.claude/* and invokes claude CLI as a Claude Code GUI, and reads Claude Desktop claude_desktop_config.json only on explicit user click of 'Import from Claude Desktop'; zero ~/.ssh, ~/.aws, ~/.codex, ~/.cursor, ~/.vscode, gh auth, or keychain reads)",
+    "telemetry_endpoints": [
+      "https://us.i.posthog.com (hardcoded project key phc_6seRe1SJkFckJU2qQWeeIy62kaSoaUbCsdVCm1TQZg8; CSP also allows app.posthog.com, *.posthog.com, *.i.posthog.com, *.assets.i.posthog.com)",
+      "VITE_PUBLIC_POSTHOG_HOST (optional build-time PostHogProvider env var; unset in CI release workflows)",
+      "https://api.github.com/repos/getAsterisk/opcode/contents/cc_agents (non-telemetry; explicit user click in GitHubAgentBrowser)",
+      "tauri-plugin-updater declared in Cargo.toml and capabilities/default.json, but unregistered in main.rs with zero endpoints/calls"
+    ],
+    "ip_geo_handling": "No IP suppression ($ip: null, ip: false, and $geoip_disable: true absent on both PostHog initializers; https://us.i.posthog.com receives raw client IPs)",
+    "custom_model_handling": "Chat UI restricts model picker to 'sonnet' | 'opus' (sent verbatim in session_created, model_selected, prompt_submitted, session_stopped); AgentExecution initializes model from SQLite agent.model (which can store arbitrary strings from imported .opcode.json) for local execution only and does not emit modelSelected",
+    "docs_discrepancies": "Material contradiction: README.md:383-384 explicitly asserts 'Local Storage: All data stays on your machine' and 'No Telemetry: No data collection or tracking' despite active default-ON PostHog analytics with silent pre-set consent; no PRIVACY.md in repo; Settings and dead AnalyticsConsent UI claim 'No personal information' and 'random IDs' while exposing client IPs and leaking tools_used[], raw custom agent.name in agent_type/feature_name, raw server_name in mcp_server_connected, hyphenated UUIDs in checkpoint_id, and Windows backslash paths in error strings; AnalyticsService comment falsely claims config is pulled from Vite env vars",
+    "privacy_rating": "F",
+    "one_line_verdict": "Default-ON PostHog telemetry meriting F due to silent pre-set consent (`hasConsented: true`), dead unmounted consent UI, missing IP/GeoIP suppression, zero DNT/env/CLI opt-out, unguarded setScreen/PostHogProvider/deleteAllData edges, retained UUID/timers when disabled, sanitizer leaks, and an outright false 'No Telemetry' / 'Local Storage' claim in README.md."
+  },
+  {
+    "slug": "opencode",
+    "platform": "OpenCode",
+    "group": "B",
+    "repo": "anomalyco/opencode",
+    "sha": "4c2977b82ece65dfebc4c25058f76e4f8a241c61",
+    "commit_date": "2026-11-24T23:52:07-05:00",
+    "license": "MIT",
+    "status": "Active (sst/opencode redirects here)",
+    "default_state": "Mixed: Core CLI/server has zero analytics SDKs and opt-in OTLP, but defaults ON for 5m models.opencode.ai and 10m opencode.ai/update polling (which logs raw IP/geo). Desktop release builds enable Sentry with no runtime opt-out, 10m auto-update polling with no opt-out, What's New changelog fetches, and Google Favicon fetches for markdown links.",
+    "opt_out_controls": [
+      "OPENCODE_DISABLE_AUTOUPDATE=1|true or config.update='disable' (CLI only; ignored by Desktop updater)",
+      "OPENCODE_DISABLE_MODELS_FETCH=1|true or OPENCODE_MODELS_URL / OPENCODE_MODELS_PATH",
+      "OTEL_EXPORTER_OTLP_ENDPOINT unset by default (strictly opt-in OTLP)",
+      "Desktop Settings -> General -> Release notes switch (disables changelog.json)",
+      "OPENCODE_DISABLE_CLAUDE_CODE=1 / _PROMPT=1 / _SKILLS=1 (disables ~/.claude file reads)",
+      "opencode.ai web only: GPC or oc_optout=1 cookie (strips IDs/cookies; still logs unlinked events)",
+      "None for Desktop/Web Sentry crash reporting, Desktop auto-update polling, or Markdown Google Favicon loads"
+    ],
+    "do_not_track": "Ignored / unsupported across CLI, Desktop, and opencode.ai web (explicitly disclaimed in services/site/src/lib/legal/privacy-policy.ts:476).",
+    "opt_out_bypasses": [
+      "Sentry prod suppression bug: packages/desktop/src/renderer/startup/sentry.ts:24 and packages/app/src/entry.tsx:74 check import.meta.env.OPENCODE_CHANNEL === 'prod' instead of VITE_OPENCODE_CHANNEL, evaluating undefined === 'prod' (false) and keeping GlobalHandlers/BrowserApiErrors active in prod despite packages/app/src/app.tsx:62-64 claiming prod crashes only send when clicking Report.",
+      "Desktop updater (packages/gui-plugins/src/updater/machine.ts:207-211, main.ts:17) ignores OPENCODE_DISABLE_AUTOUPDATE and config.update='disable' with no UI opt-out.",
+      "opencode.ai web analytics still records page views, clicks, and account/workspace events when GPC or oc_optout=1 is active, merely omitting oc_vid/oc_sid/oc_attr cookies (privacy-policy.ts:583-586)."
+    ],
+    "persistent_ids": "No persistent device/machine telemetry ID in CLI/Desktop (OTLP uses ephemeral per-process 8-hex-char runID()). Server-side services/update computes deterministic 32-bit IP rollout hash SHA-256(channel:ip) and logs raw cf-connecting-ip. Local-only IDs: Project.ID (SHA-1 of git remote/dir), Ed25519 machine/home-key (P2P Iroh), opt-in mobile Push DeviceID. Website sets 1y cookies oc_vid/oc_sid/oc_attr.",
+    "hashing": "SHA-256('${resolved}:${ip}') truncated to uint32 in services/update/src/index.ts:119 for rollout bucketing; SHA-1 (Hash.fast) for local Project.ID and cache/port derivation; SHA-256 for catalog digest.",
+    "external_auth_reads": "No cross-tool auth harvesting (.codex/.cursor/.gemini/.windsurf/.copilot not read). Reads ~/.local/share/opencode/auth.json once on v1->v2 DB migration; ~/.claude/CLAUDE.md, .claude/skills, ~/.claude/ide/*.lock (opt-out via OPENCODE_DISABLE_CLAUDE_CODE*); Zed SQLite DB; ~/.aws/{config,credentials} profile names only; ~/.config/gcloud/{active_config,configurations,application_default_credentials.json} project/region only; macOS MDM ai.opencode.managed.plist; and user-initiated Desktop Browser cookie/history imports from Chrome/Edge/Brave/Arc/Vivaldi/Opera/Firefox/Safari/etc.",
+    "telemetry_endpoints": [
+      "VITE_SENTRY_DSN (Desktop releases & Web if configured; no runtime opt-out)",
+      "https://opencode.ai/update/api/{channel}/{artifact}/{distribution} (CLI & Desktop 10m update checks -> services/update Cloudflare Pipelines)",
+      "https://formulae.brew.sh/api/formula/opencode.json (CLI Homebrew Core update check)",
+      "https://models.opencode.ai/experimental/v2.0/api.json?... (5m model catalog fetch; opt-out via OPENCODE_DISABLE_MODELS_FETCH)",
+      "https://opencode.ai/changelog.json (Desktop What's New on version upgrade; UI switch)",
+      "https://www.google.com/s2/favicons?domain=...&sz=32 (Markdown public link favicons; no opt-out)",
+      "https://opencode.ai/favicon-96x96-v3.png (Desktop/Web notification icon)",
+      "https://api.github.com/repos/anomalyco/opencode/contributors?anon=1&per_page=1 (Settings -> About view)",
+      "${OTEL_EXPORTER_OTLP_ENDPOINT}/v1/logs & /v1/traces (strictly opt-in OTLP)",
+      "https://opencode-notify-relay.anomalyco.workers.dev & https://notify.dev.opencode.ai (opt-in E2EE mobile push)",
+      "/console/funnel/v1.js (opencode.ai web/docs funnel analytics)"
+    ],
+    "ip_geo_handling": "Update worker (services/update/src/index.ts:68-71) logs raw cf-connecting-ip, cf_country, cf_colo, user-agent, and path to Cloudflare Pipelines (env.EVENTS.send) with zero IP suppression and hashes raw IP for rollout bucketing. Client Sentry does not set sendDefaultPii and strips Breadcrumbs, but Sentry HTTP ingest still sees client IP unless stripped server-side.",
+    "custom_model_handling": "Private/custom model names are NOT sent in default CLI/Desktop network requests. When user opts into OTLP (OTEL_EXPORTER_OTLP_ENDPOINT), verbatim unhashed gen_ai.provider.name and gen_ai.request.model are emitted on spans (packages/core/src/session/runner/step.ts:83-91,135-136).",
+    "docs_discrepancies": [
+      "packages/app/src/app.tsx:62-64 claims prod Sentry crashes only send when clicking Report, contradicted by undefined import.meta.env.OPENCODE_CHANNEL === 'prod' checks in sentry.ts:24 and entry.tsx:74.",
+      "packages/schema/src/config.ts:53 documents username as 'used for telemetry identity', though .username is unused in all telemetry paths.",
+      "V2 docs (services/site/src/docs/content/) omit OPENCODE_DISABLE_MODELS_FETCH, OPENCODE_DISABLE_AUTOUPDATE, OTEL_EXPORTER_OTLP_ENDPOINT, Desktop Sentry/10m updater, and Google favicon requests.",
+      "privacy-policy.ts:592 emphasizes no IP in archived web analytics, while services/update/src/index.ts:68-70 logs raw cf-connecting-ip and cf_country/cf_colo to Cloudflare Pipelines on every CLI/Desktop update check."
+    ],
+    "privacy_rating": "D",
+    "one_line_verdict": "Core CLI/server has clean opt-in OTLP and no analytics SDKs, but Desktop/Web ships un-disableable Sentry with a broken prod opt-out filter, un-disableable 10m update checks hitting a raw-IP/geo update data lake, automatic Google favicon leaks on markdown links, and V2 docs/DNT gaps."
+  },
+  {
+    "slug": "codex",
+    "platform": "OpenAI Codex CLI",
+    "group": "B",
+    "repo": "openai/codex",
+    "sha": "3f65e9f13165d85d1b1fbe20ce06c55758f927b9",
+    "commit_date": "2026-11-25T04:07:29Z",
+    "license": "Apache-2.0",
+    "status": "Active",
+    "default_state": "ON by default in release builds (Statsig OTLP metrics + Codex analytics events for TUI/exec/migrate-rollouts/TS-SDK; update checks + curated plugin sync + TUI announcement prewarm also ON). Standalone app-server disables Statsig OTEL metrics by default but leaves AnalyticsEventsClient ON.",
+    "opt_out_controls": "Config file / CLI override only ([analytics] enabled = false, check_for_update_on_startup = false, [feedback] enabled = false, [otel] metrics_exporter = \"none\", [features] plugins = false); no TUI settings toggle and no master switch.",
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "app-server AnalyticsEventsClient ignores default_analytics_enabled=false and stays ON when analytics.enabled is unset (analytics_utils.rs:28)",
+      "TUI tooltips::announcement::prewarm unconditionally fetches raw.githubusercontent.com/openai/codex/main/announcement_tip.toml (tui/src/lib.rs:1207)",
+      "Responses API client_metadata (ignoring include_internal) and x-codex-turn-metadata still transmit installation_id, workspace paths, git remotes, and analytics_enabled=false when opted out (responses_metadata.rs:361-482)",
+      "curated plugins startup sync and custom otel.metrics_exporter collectors are independent of analytics.enabled (otel_init.rs:76-84, manager.rs:977-993)",
+      "app-server otel_reloader only reloads on auth changes, not mid-session config.toml edits (otel_reloader.rs:58-107)"
+    ],
+    "persistent_ids": [
+      "<codex_home>/installation_id (UUIDv4 persisted and sent in Responses API client_metadata/headers even when analytics.enabled=false, and in Remote Control)",
+      "session_id / thread_id / turn_id / window_id",
+      "account_id / chatgpt_user_id / email (when ChatGPT-authenticated; user.account_id and user.email in OTEL log_event!; account_id/chatgpt_user_id in manual /feedback Sentry tags)"
+    ],
+    "hashing": "Unsalted deterministic SHA-1 for repo_hash (\"file-line-v1\\0repo\\0\" + canonical git remote URL in accepted_lines.rs:63-116) and skill_id (reducer.rs:1505,4184-4187).",
+    "external_auth_reads": "None unconditionally; .claude/.claude.json/.cursor/.cursorrules/Claude desktop dirs are read strictly on user-initiated /import or externalAgentConfig/{detect,import} JSON-RPC.",
+    "telemetry_endpoints": [
+      "https://ab.chatgpt.com/otlp/v1/metrics (Statsig OTLP metrics, hardcoded statsig-api-key, release default ON)",
+      "https://chatgpt.com/backend-api/codex/analytics-events/events (Codex analytics events, default ON whenever analytics.enabled != false)",
+      "https://o33249.ingest.us.sentry.io/api/4510195390611458/envelope/ (Sentry feedback upload, manual /feedback only)",
+      "https://raw.githubusercontent.com/openai/codex/main/announcement_tip.toml (unconditional TUI startup prewarm)",
+      "https://api.github.com/repos/openai/codex/releases/latest, https://formulae.brew.sh/api/cask/codex.json, https://registry.npmjs.org/@openai%2fcodex (startup update checks)",
+      "https://github.com/openai/plugins.git, https://api.github.com/repos/openai/plugins, https://chatgpt.com/backend-api/plugins/export/curated (startup curated plugins sync)",
+      "https://api.chatgpt.com/v1/analytics/codex/turn-costs (turn cost query only when custom OTLP collector configured)",
+      "https://ab.chatgpt.com/v1/{initialize,rgstr,sdk_exception} & /wham/statsig/bootstrap (dormant; Feature::StatsigGates=false and 0 non-test callers)"
+    ],
+    "ip_geo_handling": "No IP suppression or anonymizing proxy; direct connections expose client IP to OpenAI/Statsig/Sentry/GitHub/npm/Homebrew. RequestCountry defaults to Omitted (leaving provenance to server).",
+    "custom_model_handling": "Verbatim unredacted model slug and model_provider sent in AnalyticsEventsClient (codex_turn_event, codex_thread_initialized, codex_accepted_line_fingerprints) and Statsig OTLP SessionMetricTagValues.model (even for private/local models if ChatGPT auth is present).",
+    "docs_discrepancies": [
+      "cli/src/main.rs:621-624 claims analytics are disabled by default for app-server, but AnalyticsEventsClient remains ON unless analytics.enabled=false is explicitly set",
+      "README.md, docs/config.md, and codex-rs/config.md omit all documentation of default-on Statsig OTLP metrics, AnalyticsEventsClient, and opt-out steps (moved off-repo)",
+      "Unconditional TUI announcement_tip.toml fetch and persistent installation_id/workspace metadata transmission when analytics.enabled=false are undocumented"
+    ],
+    "privacy_rating": "D",
+    "one_line_verdict": "Default-on Statsig OTLP metrics and Codex analytics events lack DO_NOT_TRACK or UI toggles, leak verbatim custom model slugs, use unsalted SHA-1 repo/skill hashes, bypass app-server's documented opt-in default for AnalyticsEventsClient, and still transmit persistent installation_id and workspace git metadata when opted out."
+  },
+  {
+    "slug": "gemini-cli",
+    "platform": "Google Gemini CLI",
+    "group": "B",
+    "repo": "google-gemini/gemini-cli",
+    "sha": "08e9a20f749aefcbda38622ac757899c3d6216e0",
+    "commit_date": "2026-11-24T23:51:44Z",
+    "license": "Apache-2.0",
+    "status": "Active",
+    "default_state": "Mixed ON by default: Google Clearcut (privacy.usageStatisticsEnabled: true), Chrome CrUX via chrome-devtools-mcp, npm/GitHub/VS Code Marketplace update checks, and Code Assist Free tier data collection opt-in (freeTierDataCollectionOptin ?? true) are ON by default; OpenTelemetry is OFF by default (telemetry.enabled: false) EXCEPT telemetry.logPrompts defaults to true.",
+    "opt_out_controls": "Clearcut: set privacy.usageStatisticsEnabled=false in settings.json (hidden from /settings via showInDialog: false; no CLI flag or env var). OTEL: telemetry.enabled=false or GEMINI_TELEMETRY_ENABLED=false, and logPrompts=false / GEMINI_TELEMETRY_LOG_PROMPTS=false. Code Assist Free tier model training: /privacy interactive dialog.",
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "Setting telemetry.enabled=false or GEMINI_TELEMETRY_ENABLED=false stops OTEL only, leaving Google Clearcut ON",
+      "CodeAssistServer.recordConversationOffered and recordToolCallInteractions send POST cloudcode-pa.googleapis.com/v1internal:recordCodeAssistMetrics without checking usageStatisticsEnabled or telemetry.enabled",
+      "packages/a2a-server/src/config/config.ts defines privacy.usageStatisticsEnabled in settings.ts but omits it from ConfigParameters, forcing Clearcut and x-gemini-api-privileged-user-id ON",
+      "packages/sdk/src/session.ts and types.ts omit usageStatisticsEnabled and telemetry options, forcing Clearcut ON for SDK consumers",
+      "packages/vscode-ide-companion unconditionally POSTs to marketplace.visualstudio.com on activation outside managed surfaces",
+      "In OTEL when traces=true and logPrompts=false, ModelRoutingEvent.reasoning, gen_ai.system_instructions, gen_ai.tool_definitions, and error messages/stack traces still emit",
+      "Short-lived Clearcut sessions with OTEL OFF skip shutdownTelemetry in cleanup.ts, omitting END_SESSION"
+    ],
+    "persistent_ids": [
+      "~/.gemini/installation_id (UUIDv4, fallback '123456789'; sent in Clearcut client_install_id when unauthenticated, OTEL installation.id, and HTTP header x-gemini-api-privileged-user-id)",
+      "~/.gemini/google_accounts.json (plaintext active email sent in Clearcut client_email and OTEL user.email, plus historical old[] email list counting GEMINI_CLI_GOOGLE_ACCOUNTS_COUNT)",
+      "Per-session session.id / prompt_id / trajectoryId"
+    ],
+    "hashing": "Unsalted SHA-256 for extension_ids (GitHub repo URL or source/name), hashed_extension_name, and GITHUB_REPOSITORY in Clearcut; local AES-256-GCM scrypt encryption for gemini-credentials.json using hostname+username salt (local only); plaintext email and UUIDv4 installation_id transmitted without hashing",
+    "external_auth_reads": [
+      "~/.gemini/oauth_creds.json, ~/.gemini/google_accounts.json, ~/.gemini/installation_id, ~/.gemini/gemini-credentials.json, ~/.gemini/mcp-oauth-tokens.json, ~/.gemini/.env, ~/.env",
+      "GOOGLE_APPLICATION_CREDENTIALS and ADC (for Google OAuth/Vertex/GCP OTEL)",
+      "Explicit user-invoked subcommand only: ${cwd}/.claude/settings*.json via 'gemini hooks migrate --from-claude' (zero automatic external agent auth reads)"
+    ],
+    "telemetry_endpoints": [
+      "https://play.googleapis.com/log?format=json&hasfast=true (Google Clearcut, ON by default)",
+      "https://cloudcode-pa.googleapis.com/v1internal:{recordCodeAssistMetrics,listExperiments,fetchAdminControls,getCodeAssistGlobalUserSetting,setCodeAssistGlobalUserSetting} (Code Assist telemetry/experiments/admin/privacy, unconditional for Google auth)",
+      "https://www.googleapis.com/oauth2/v2/userinfo (OAuth email lookup cached to google_accounts.json)",
+      "http://localhost:4317 or OTEL_EXPORTER_OTLP_ENDPOINT / GEMINI_TELEMETRY_OTLP_ENDPOINT (OTLP gRPC/HTTP, OFF by default)",
+      "Google Cloud Trace / Monitoring (custom.googleapis.com/gemini_cli) / Logging (gemini_cli) when telemetry.target=gcp",
+      "chrome-devtools-mcp default usage-statistics & performance-crux telemetry (ON by default when Browser Agent used)",
+      "npm registry (latest-version), api.github.com/repos/* releases & git ls-remote, and marketplace.visualstudio.com/_apis/public/gallery/extensionquery"
+    ],
+    "ip_geo_handling": "No client-side IP lookup, geo API, or timezone harvesting in telemetry code, but no IP suppression or strip proxy exists; Google Clearcut, Code Assist, OTLP/GCP, GitHub, npm, and Marketplace endpoints observe client IP at the network layer (global proxy used only if user sets HTTP_PROXY/HTTPS_PROXY/ALL_PROXY).",
+    "custom_model_handling": "Model strings (including custom/override models) are transmitted verbatim without redaction or allowlisting in Clearcut events (START_SESSION, API_*, CONTENT_RETRY*, MODEL_ROUTING, Billing), OTEL attributes (gen_ai.request.model, gen_ai.response.model, model), and HTTP User-Agent headers.",
+    "docs_discrepancies": [
+      "docs/reference/configuration.md:3147-3148 states 'We do not collect any personal information, such as your name, email address, or API keys', directly contradicted by Clearcut client_email (clearcut-logger.ts:420,498) and OTEL user.email (telemetryAttributes.ts:16,23)",
+      "docs/reference/configuration.md:3137-3150 claims prompts, responses, and tool arguments are not logged, contradicted when enableConseca=true (sends user_prompt, trusted_content, policy, tool_call args, verdict_rationale to Clearcut via default logPrompts=true), ModelRoutingEvent.reasoning to Clearcut, OTEL default logPrompts=true, and Code Assist Free tier default opt-in",
+      "clearcut-logger.ts:693 comments 'We deliberately do not log the names of extensions here' while sending unsalted SHA-256 extension_ids and plaintext mcp_servers/mcp_tools; OTEL sends plaintext extension_name/extensions",
+      "Docs omit unconditional Code Assist recordCodeAssistMetrics telemetry, a2a-server/sdk usageStatisticsEnabled bypasses, and default-enabled Browser Agent CrUX telemetry"
+    ],
+    "privacy_rating": "F",
+    "one_line_verdict": "Default-on Google Clearcut sends plaintext user email/installation UUID, hardware specs, MCP lists, and (with Conseca) full prompts/tool calls while docs falsely promise no email or prompt collection, and Code Assist/a2a-server/SDK/Marketplace telemetry bypasses opt-out controls."
+  },
+  {
+    "slug": "openhands",
+    "platform": "OpenHands",
+    "group": "B",
+    "repo": "OpenHands/OpenHands",
+    "sha": "adf71d626b81a0db00902e0d3edf2b00d2cf917c",
+    "commit_date": "2026-11-24T23:20:32-05:00",
+    "license": "MIT",
+    "status": "Active (All-Hands-AI/OpenHands redirects here)",
+    "default_state": "ON pre-consent in browser and ON by default for local Python backends: fires canvas_install before consent on first mount (src/hooks/use-telemetry.ts:78-83), initializes PostHog on load unless DNT is set (telemetry-provider.tsx:311-316), pre-checks consent banner (defaultChecked), treats null consent as true in Settings, locks Cloud backends ON (cookie mode unconditionally forces getTelemetryConsent() === 'granted'), and passes PostHog keys to local agent-server and automation backends.",
+    "opt_out_controls": [
+      "Consent banner checkbox (pre-checked) and Settings -> App toggle (disabled & forced ON on Cloud backends)",
+      "VITE_DO_NOT_TRACK=1 (build-time Vite constant for source builds; also stops backend key injection in launchers/Docker)",
+      "AGENT_CANVAS_DISABLE_TELEMETRY=1 or --disable-telemetry on scripts/static-server.mjs (undocumented; injects window.__AGENT_CANVAS_DO_NOT_TRACK__=true)",
+      "DO_NOT_TRACK=1 (stops SSR, feedback submission, and agent-server telemetry; ignored by automation backend and prebuilt SPA)",
+      "Browser navigator.doNotTrack === '1' / window.doNotTrack === '1' (stops PostHog SDK init and install event)",
+      "configureTelemetry(false) / analytics={false} on AgentServerUIProviders (library consumers)",
+      "clearTelemetryData() exported API (no UI caller exists)"
+    ],
+    "do_not_track": "Partially supported: navigator.doNotTrack=1 stops PostHog SDK init and canvas_install, and DO_NOT_TRACK=1 stops agent-server/SSR/feedback, but prebuilt browser bundles require undocumented AGENT_CANVAS_DISABLE_TELEMETRY=1, dev-with-automation.mjs and docker/entrypoint.sh ignore DO_NOT_TRACK=1 for AUTOMATION_POSTHOG_API_KEY, and submitPrivateFeedback() omits navigator.doNotTrack.",
+    "opt_out_bypasses": [
+      "Pre-consent canvas_install fires on first mount before consent UI choice (src/services/telemetry.ts:759-801)",
+      "posthog.init() runs on every mount even when consent is 'pending' or 'denied' unless DNT is enabled, fetching PostHog remote config/flags via z.openhands.dev (src/components/providers/telemetry-provider.tsx:311-316, src/services/telemetry.ts:320-321)",
+      "Cookie-auth Cloud mode unconditionally returns 'granted' in getTelemetryConsent(), overriding localStorage denial and locking Settings toggle ON (src/services/telemetry.ts:495-497, src/routes/app-settings.tsx:112-114,217-232)",
+      "authenticateWithMainAppCookie() sends POST /api/analytics/events (canvas_authenticated) without checking consent or DNT (src/api/main-app-auth.ts:32-56)",
+      "submitPrivateFeedback() (#19272) intentionally bypasses telemetry consent and fails to check navigator.doNotTrack (src/services/telemetry.ts:955-965)",
+      "DO_NOT_TRACK=1 is ignored by buildAutomationTelemetryEnv() in scripts/dev-with-automation.mjs:988 and docker/entrypoint.sh:462",
+      "Settings npm update check (registry.npmjs.org) and Google Fonts CSS @import (fonts.googleapis.com) have no opt-out toggle"
+    ],
+    "persistent_ids": [
+      "PostHog localStorage persistence ('agent-canvas' -> distinct_id & $device_id), seeded pre-consent and joined to Cloud userId + email via posthog.identify() (person_profiles: 'always')",
+      "Website handoff bootstrap oh_ph_handoff / distinct_id / session_id URL params + UTM attribution bridging openhands.dev -> Agent Canvas",
+      "PostHog distinct_id forwarded to local agent-server as user_id on conversation creation and to local automation via X-OpenHands-Telemetry-Distinct-Id header and frontend_distinct_id body",
+      "Cloud account context properties (cloud_user_id, cloud_user_email, cloud_org_id) injected via before_send",
+      "DigitalOcean MARS deviceId (randomUUID in mars-credentials.json sent only as X-Device-UUID to api.digitalocean.com when MARS is used)"
+    ],
+    "hashing": "No telemetry hashing or unsalted cross-provider ID stitching via hashes; local-only truncated SHA-256 token fingerprint (sha256(token)[:16]) in scripts/mars-credentials.mjs:74-76 for DigitalOcean PAT deduplication.",
+    "external_auth_reads": "No cross-tool secret exfiltration or telemetry transmission of external auth files. Local-backend-only ACP login status probe (src/api/acp-service/acp-service.api.ts:75-118) runs 'claude auth status --json', 'codex login status', 'test -f \"$HOME/.gemini/oauth_creds.json\"', and 'grep -qs '\"type\"' \"$HOME/.pi/agent/auth.json\"' via local bash API solely to classify UI status ('authenticated'|'unauthenticated'|'unknown') on onboarding/settings. User-initiated DigitalOcean MARS stores DO tokens in OS Keychain or ~/.openhands/agent-canvas/digitalocean/secrets.json.",
+    "telemetry_endpoints": [
+      "https://z.openhands.dev (default PostHog ad-blocker-bypass reverse proxy for client SDK events, flags/config, and #19272 surveys)",
+      "https://us.i.posthog.com (default PostHog US direct ingest host passed to local/Docker agent-server and automation backends)",
+      "https://us.posthog.com (default PostHog UI host)",
+      "/api/analytics/events (same-origin Cloud cookie-mode canvas_authenticated beacon)",
+      "https://registry.npmjs.org/@openhands/agent-canvas/latest (Settings update check when not locked to Cloud)",
+      "https://fonts.googleapis.com/css2 (Outfit & IBM Plex Mono stylesheet loads)",
+      "/api/automation/v1/telemetry/consent (local automation sidecar consent & distinct_id sync)"
+    ],
+    "ip_geo_handling": "No IP suppression on main PostHog SDK init (telemetry.ts:438-455 omits ip:false and property_blacklist) and routes through OpenHands reverse proxy z.openhands.dev, exposing client IP and GeoIP to both OpenHands and PostHog. Only manual submitPrivateFeedback() (#19272) sets ip:false in the JSON payload.",
+    "custom_model_handling": "Verbatim unredacted LLM model strings sent on settings save: settings-form.tsx:44-45 passes agentLlm.model raw to trackSettingsSaved({ llmModel }) -> LLM_MODEL (use-tracking.ts:280). Every useTracking/trackError event also includes verbatim current_url (window.location.href).",
+    "docs_discrepancies": [
+      "Zero privacy/telemetry documentation in README.md, README.windows.md, docs/, or bin/agent-canvas.mjs --help (no PRIVACY file; omits PostHog, pre-consent canvas_install, z.openhands.dev proxy, npm update check, Google Fonts, and AGENT_CANVAS_DISABLE_TELEMETRY=1)",
+      "Telemetry banner claims 'No personal information is collected' (src/i18n/translation.json:23997) while collecting cloud_user_email/cloud_user_id via posthog.identify() + before_send (with person_profiles:'always') and exposing client IP",
+      "app-settings.tsx:165 comment claims 'analytics is opt-in by default' while setting null ?? true, pre-checking the banner checkbox, and firing canvas_install before consent",
+      ".env.sample:28 implies VITE_DO_NOT_TRACK=1 disables all telemetry without noting it fails at runtime on prebuilt npm/Docker/Desktop bundles"
+    ],
+    "privacy_rating": "D",
+    "one_line_verdict": "Ships pre-consent install beacons and pre-checked analytics routed through an ad-blocker-bypass PostHog proxy (z.openhands.dev) without IP suppression, leaks verbatim custom model names and full URLs, fractures opt-out flags across prebuilt bundles and backends, locks Cloud telemetry ON, and claims no PII is collected despite identifying users by email."
+  },
+  {
+    "slug": "cline",
+    "platform": "Cline",
+    "group": "B",
+    "repo": "cline/cline",
+    "sha": "34c104e6fc49781cda4adcd73ffdccd8f029fef9",
+    "commit_date": "2026-11-23T13:06:22+01:00",
+    "license": "Apache-2.0",
+    "status": "Active",
+    "default_state": "Opt-Out (ON by default across VS Code extension, A/B rollout wrapper, CLI, Hub daemon, and Desktop Tauri app via telemetryOptOut=false in global-settings.ts:63 and telemetrySetting!='disabled'; release CI workflows bake in PostHog keys plus OTLP logs/metrics/traces with CLINE_TRACE_RECORD_CONTENT='true')",
+    "opt_out_controls": [
+      "VS Code UI checkbox 'Allow error and usage reporting' (GeneralSettingsSection.tsx:28-36) sets telemetryOptOut=true in ~/.cline/data/settings/global-settings.json and telemetrySetting='disabled'",
+      "VS Code host telemetry.telemetryLevel / vscode.env.isTelemetryEnabled gates ordinary VS Code events (sdk-telemetry.ts:238-240), though with startup/trace bypasses",
+      "Desktop UI Settings -> Telemetry switch invokes sidecar command set_telemetry_opt_out (commands.ts:3340-3346, settings-view.tsx:1024-1029)",
+      "CLI has NO flag, subcommand, or TUI toggle for telemetryOptOut; requires manual JSON edit to ~/.cline/data/settings/global-settings.json (telemetry.mdx:46-54) plus restarting CLI and 'cline hub stop'",
+      "Self-hosted ~/.cline/endpoints.json or bundled endpoints.json disables main VS Code PostHog and build-time OTEL (config.ts:85-92,130, PostHogClientProvider.ts:25-28, TelemetryProviderFactory.ts:113), but NOT apps/vscode-rollout",
+      "CLI/Desktop auto-update can be disabled via CLINE_NO_AUTO_UPDATE=1 or autoUpdateEnabled=false (update.ts:313-314)"
+    ],
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "Classic TelemetryService.captureRequired -> OpenTelemetryTelemetryProvider.logRequired and PostHogTelemetryProvider.logRequired emit regardless of telemetrySetting or VS Code hostEnabled (OpenTelemetryTelemetryProvider.ts:129-143, PostHogTelemetryProvider.ts:93-102)",
+      "VS Code VscodeTelemetryPolicyService.captureRequired checks only hostTelemetryEnabled and ignores Cline's telemetrySetting='disabled' (sdk-telemetry.ts:110-115,242-248); opting out fires required event 'user.opt_out' (global-settings.ts:233-235, core-events.ts:418-426), and plugins with required=true bypass opt-out (agent-event-bridge.ts:283-287)",
+      "When VS Code telemetry is OFF but global-settings telemetryOptOut=false, OpenTelemetryProvider registers the global OTLP NodeTracerProvider at construction (OpenTelemetryProvider.ts:183-193), VscodeTelemetryPolicyService fires telemetry.provider_created before HostProvider.env.getTelemetrySettings resolves (sdk-telemetry.ts:176-189), and langfuse-telemetry.ts:217-265 ignores vscode.env.isTelemetryEnabled so cline/cline-pass prompt traces still export",
+      "apps/vscode-rollout POSTs hardware/generated machineId to https://data.cline.bot/decide?v=3 on every VS Code startup ignoring telemetrySetting, vscode.env.isTelemetryEnabled, and self-hosted endpoints.json (rollout.ts:31-45,82-148)",
+      "PostHog feature-flag polling (FeatureFlagsService in VS Code, CLI, Desktop, and Hub daemon) explicitly ignores telemetry opt-out and sends distinctId (machineId or accountId; Desktop caches userId/email to disk) to https://data.cline.bot (FeatureFlagsService.ts:15-20, cli/feature-flags.ts:26-78, desktop/feature-flags.ts:117-162)",
+      "Webview CustomPostHogProvider initializes posthog-js (unless selfHosted) with advanced_disable_decide=false and calls posthog.identify(distinctId, { email, name }) even when telemetrySetting=='disabled' before calling opt_out_capturing() (CustomPostHogProvider.tsx:22-56)",
+      "CLI/Desktop/Hub daemon OpenTelemetryAdapter caches enabled status at startup (OpenTelemetryProvider.ts:417-432, OpenTelemetryAdapter.ts:56,177-179); setting telemetryOptOut=true does not stop OTLP events/metrics until process and detached 'cline hub' daemon restart",
+      "CLINE_OTEL_TELEMETRY_ENABLED=true and org Remote Config OTEL set bypassUserSettings=true (TelemetryProviderFactory.ts:121-130, remote-config/utils.ts:251-257), and BannerService.sendBannerEvent POSTs instance_id without opt-out checks (BannerService.ts:252-275)",
+      "CLINE_TELEMETRY_DISABLED and OTEL_SDK_DISABLED are ignored by all production code (even though Cline's own CLI tests set CLINE_TELEMETRY_DISABLED='1')"
+    ],
+    "persistent_ids": [
+      "node-machine-id hardware machineId() / machineIdSync() initialized unconditionally at startup even when opted out (distinctId.ts:25-58, StateManager.ts:100, distinct-id.ts:12-55, TelemetryService.ts:38,152)",
+      "Persistent fallback UUID/nanoid: VS Code globalState['cline.generatedMachineId'] ('cl-' + uuidv4) and Core ~/.cline/data/sessions/machine-id ('cl-' + nanoid) (distinctId.ts:37-38, distinct-id.ts:57-82)",
+      "VS Code A/B rollout wrapper reads cline.generatedMachineId -> node-machine-id -> vscode.env.machineId (rollout.ts:31-45)",
+      "Authenticated account/org identifiers stitched onto device_id: user_id, account_id, account_email, user_name, organization_id, organization_name, member_id across Cline, openai-codex, and oca OAuth flows (core-events.ts:428-450, codex.ts:380-384, oca.ts:427-431)"
+    ],
+    "hashing": "None for persistent device_id, distinct_id, user_id, account_email, user_name, or git branch/SHA/remote_url (sent unhashed/verbatim). Ephemeral per-process HMAC-SHA256 (randomBytes(32)) hashes workspace_id in task.git_snapshot (git-telemetry.ts:13,181-183); non-cryptographic fnv1a32(samplingKey) is used for trace sampling (langfuse-telemetry.ts:249).",
+    "external_auth_reads": "None for telemetry or tracking (0 reads of ~/.ssh, ~/.claude/.credentials.json, ~/.codex/auth.json, or browser tokens). Non-workspace reads are strictly feature-gated/local: ~/.claude/projects, ~/.codex/sessions, and ~/.local/share/opencode/opencode.db are read only via Desktop SessionImportService (session-import/paths.ts, commands.ts:2673-2720) with zero telemetry export; ~/.aws/config read only for Bedrock region resolution (aws-region.ts:36-46); ~/.oca/config.json for OCA OAuth config; ~/.claude/skills and ~/.agents/skills for user skills.",
+    "telemetry_endpoints": [
+      "https://data.cline.bot (closed PostHog ingest & feature-flag /decide?v=3 reverse proxy; us.posthog.com / us.i.posthog.com uiHost)",
+      "Production CI-inlined OTLP collector (<OTEL_EXPORTER_OTLP_ENDPOINT>/v1/logs, /v1/metrics, /v1/traces via HTTP/Proto/gRPC from GitHub Secrets) + optional CLINE_OTEL_* / enterprise Remote Config OTLP / LANGFUSE_* collectors",
+      "https://api.cline.bot/banners/v2/messages (banner event POSTs) and https://api.cline.bot/api/v1/* / https://app.cline.bot (auth, remote config)",
+      "Enterprise Remote Config user/admin-configured S3 / Cloudflare R2 / Azure Blob buckets (Prompt Storage worker.ts:231)",
+      "Auto-updaters (non-telemetry): https://registry.npmjs.org/cline/<tag> (CLI) and https://github.com/cline/cline/releases/download/desktop-{latest,beta}/latest.json (Desktop)"
+    ],
+    "ip_geo_handling": "No IP or GeoIP suppression anywhere (0 occurrences of disable_geoip/disableGeoip); client IP is visible to the closed https://data.cline.bot PostHog proxy, CI-configured OTLP collector, api.cline.bot, and npm/GitHub updaters.",
+    "custom_model_handling": "Verbatim / Unsanitized: custom, local, LiteLLM, Ollama, LM Studio, and OpenAI-compatible providerId and model/modelId strings are emitted directly in task.created, task.conversation_turn, task.tokens, task.tool_used, and task lifecycle events (agent-events.ts:224-281, core-events.ts:477-585).",
+    "docs_discrepancies": [
+      "docs/enterprise-solutions/monitoring/telemetry.mdx:39 claims VS Code stops usage events when editor telemetry is off, but VscodeTelemetryPolicyService fires telemetry.provider_created and registers NodeTracerProvider before checking host telemetry, langfuse-telemetry.ts ignores vscode.env.isTelemetryEnabled, classic logRequired ignores hostEnabled, and apps/vscode-rollout ignores all opt-outs",
+      "docs/enterprise-solutions/monitoring/opentelemetry-events.mdx:362,367-378 claims anonymized user tokens, hashed branch names, and no raw code/paths, whereas code sends raw user_name/organization_name/account_email/email, raw git.branch/head_sha/remote_url in task.git_snapshot, and full prompts/responses for cline/cline-pass when CLINE_TRACE_RECORD_CONTENT='true'",
+      "docs/enterprise-solutions/monitoring/telemetry.mdx:7,19 implies account identification is for Cline accounts only, whereas openai-codex and oca OAuth logins also invoke identifyAccount with third-party accountId and email (codex.ts:380-384, oca.ts:427-431)",
+      "docs/enterprise-solutions/monitoring/prompt-storage.mdx:74 omits userDistinctId from the S3 key path documented as tasks/{taskId}/api_conversation_history.json (worker.ts:231 uploads tasks/{userDistinctId}/{taskId}/{key})",
+      "No PRIVACY* file exists in repo, README.md/apps/cli/README.md/apps/vscode/README.marketplace.md omit telemetry disclosures, and CLI tests set CLINE_TELEMETRY_DISABLED='1' which no production code reads"
+    ],
+    "privacy_rating": "F",
+    "one_line_verdict": "Opt-out by default meriting F due to active opt-out bypasses across rollout, feature-flag polling, captureRequired, and VS Code host-telemetry-off trace/event paths, baked-in PostHog (https://data.cline.bot) and OTLP logs/metrics/full-content cline-provider traces, hardware machineId initialization even when disabled, no DO_NOT_TRACK/CLINE_TELEMETRY_DISABLED/CLI-toggle support, no IP suppression, and verbatim custom models."
+  },
+  {
+    "slug": "roo-code",
+    "platform": "Roo Code",
+    "group": "B",
+    "repo": "RooCodeInc/Roo-Code",
+    "sha": "b867ec9145750d0ae1ff7f02d35406e9bf2a0b16",
+    "commit_date": "2026-05-15T14:04:45-04:00",
+    "license": "Apache-2.0",
+    "status": "Archived (2026-05-15)",
+    "default_state": "Disabled / Zero-Telemetry (all telemetry, analytics, and Roo Code Cloud plumbing removed in PRs #12324 and #12328 prior to archival; only an unauthenticated 2-endpoint public model-catalog prefetch to openrouter.ai and ai-gateway.vercel.sh runs 2s after extension activation)",
+    "opt_out_controls": [
+      "No telemetry toggles or env vars exist because all telemetry/analytics code was removed (PR #12324)",
+      "No UI/CLI/env opt-out exists for the 2s startup model-catalog prefetch (src/extension.ts:291, src/api/providers/fetchers/modelCache.ts:208-227)",
+      "roo-cline.debug, roo-cline.debugProxy.enabled, and roo-cline.autoImportSettingsPath all default disabled/empty (src/package.json:344-348,380-402)"
+    ],
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "No telemetry opt-out bypasses (zero telemetry); however, initializeModelCacheRefresh() unconditionally issues unauthenticated GET requests to openrouter.ai and ai-gateway.vercel.sh 2000ms after extension activation with no opt-out switch (src/extension.ts:291, src/api/providers/fetchers/modelCache.ts:208-227)"
+    ],
+    "persistent_ids": [
+      "None in src/ or telemetry; packages/vscode-shim/src/utils/machine-id.ts:16-44 creates ~/.vscode-mock/.machine-id (SHA-256 of hostname + 16 random bytes) solely to populate the CLI VS Code mock env.machineId property, with zero readers in src/ or apps/cli/"
+    ],
+    "hashing": "No telemetry ID hashing; SHA-256 is used locally for packages/vscode-shim .machine-id (untransmitted), local disk/esbuild caches (cache-manager.ts:26, custom-tool-registry.ts:291), and OpenAI Codex OAuth PKCE S256 (oauth.ts:188,196); MD5 is used locally for tool-ID truncation (tool-id.ts:37) and todo IDs (UpdateTodoListTool.ts:191-194); ephemeral uuidv7()/randomUUID() task/session IDs go only to user-selected LLM providers.",
+    "external_auth_reads": "None at startup or for telemetry (0 reads of ~/.claude, ~/.codex, ~/.cursor, ~/.copilot, or ~/.ssh). Conditional user-selected provider auth reads only: ~/.qwen/oauth_creds.json when qwen-code provider is used (qwen-code.ts:22-23,83-94), AWS profile via fromIni when bedrock awsUseProfile is enabled (bedrock.ts:269-274), and GCP ADC/keyfile when vertex is used (anthropic-vertex.ts:43-63). OpenAI Codex OAuth uses VS Code SecretStorage, not ~/.codex.",
+    "telemetry_endpoints": [
+      "None for telemetry, analytics, crash reporting, OTEL, or Roo Cloud relay (all removed prior to archival)",
+      "Non-telemetry startup model-catalog GET prefetch (2s after activation, unauthenticated, no opt-out): https://openrouter.ai/api/v1/models and https://ai-gateway.vercel.sh/v1/models",
+      "Dormant CI artifact: .github/workflows/marketplace-publish.yml:32-33 still writes POSTHOG_API_KEY into .env, but zero runtime code reads it"
+    ],
+    "ip_geo_handling": "Zero IP/GeoIP lookup endpoints or telemetry ingest proxies; client IP is exposed only on direct requests to user-configured LLM/OAuth/MCP providers, manual `roo upgrade` GitHub calls, and the two unauthenticated startup model-catalog GETs (openrouter.ai, ai-gateway.vercel.sh).",
+    "custom_model_handling": "Custom/private model IDs are sent solely to the user's configured inference/embedding endpoint; no telemetry backend exists to record or leak model names.",
+    "docs_discrepancies": [
+      "PRIVACY.md:3,13,17,24 still describes default-on PostHog telemetry, VS Code machineId collection, and a UI opt-out toggle that were removed in PR #12324",
+      "apps/docs/docs/advanced-usage/available-tools/attempt-completion.md:100 and new-task.md:89 still document removed telemetry capture calls, and docusaurus.config.ts:437-438 links to outdated PRIVACY.md",
+      ".github/workflows/marketplace-publish.yml:32-33,50, .env.sample:1-6, src/.vscodeignore:35, and .roo translation docs retain unused POSTHOG_API_KEY / Cloud / telemetry references",
+      "src/api/index.ts:46,57-63 JSDoc mentions retired X-Roo-Task-ID and OpenAI store @default true while openai-native.ts:345 sets store: false",
+      "Dead unreferenced artifacts remain from Cloud/telemetry removal: ClineProvider.ts:1128,1219 CSP (img.clerk.com, storage.googleapis.com), apps/cli/src/lib/sdk/client.ts, packages/types/src/{cookie-consent.ts,organization.ts}, gemini-cli provider-settings stub, and mockCaptureException in two test files"
+    ],
+    "privacy_rating": "A",
+    "one_line_verdict": "Archived 2026-05-15 at a clean Zero-Telemetry state after PRs #12324/#12328/#12375 stripped PostHog, packages/telemetry, and Roo Code Cloud; only unauthenticated 2s startup public model-catalog GETs (openrouter.ai, ai-gateway.vercel.sh), conditional provider-selected auth (~/.qwen/oauth_creds.json, AWS/GCP), and stale pre-removal PRIVACY.md/CI artifacts remain."
+  },
+  {
+    "slug": "aider",
+    "platform": "Aider",
+    "group": "B",
+    "repo": "Aider-AI/aider",
+    "sha": "5dc9490bb35f9729ef2c95d00a19ccd30c26339c",
+    "commit_date": "2026-05-22T07:02:20-07:00",
+    "license": "Apache-2.0",
+    "status": "Active",
+    "default_state": "Mixed: PostHog analytics is OFF for 90% of fresh installs while a random 10% cohort is prompted to opt in (with [Yes] default and silent auto-accept under --yes-always/EOF); PyPI version check (--check-update) and GitHub/OpenRouter model metadata fetches are ON by default; a persistent UUIDv4 is created in ~/.aider/analytics.json on every first launch.",
+    "opt_out_controls": [
+      "--no-analytics / AIDER_ANALYTICS=false / analytics: false (disables PostHog for session)",
+      "--analytics-disable / AIDER_ANALYTICS_DISABLE=true / analytics-disable: true (permanently disables PostHog)",
+      "--analytics-posthog-host and --analytics-posthog-project-api-key (redirect PostHog to custom instance)",
+      "--no-check-update / AIDER_CHECK_UPDATE=false / check-update: false (disables PyPI version check)",
+      "--no-show-release-notes / AIDER_SHOW_RELEASE_NOTES=false (disables first-run release notes prompt)",
+      "--no-detect-urls / AIDER_DETECT_URLS=false (disables URL scraping prompts)"
+    ],
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "--yes-always / AIDER_YES_ALWAYS=true / yes-always: true (and return_coder=True in main.py:546-547) silently auto-accepts the 10% analytics opt-in prompt (io.confirm_ask has default='y' and explicit_yes_required=False), permanently enabling PostHog without user consent",
+      "Empty Enter or EOF (Ctrl+D) at the 10% opt-in prompt defaults to 'y' and enables PostHog (io.py:884-891)",
+      "Analytics.__init__() unconditionally generates and writes a persistent UUIDv4 to ~/.aider/analytics.json even when --no-analytics, AIDER_ANALYTICS=false, or --analytics-disable is specified (analytics.py:81,147-153)",
+      "--no-analytics and --analytics-disable do not stop PyPI versioncheck (versioncheck.py:78) or GitHub/OpenRouter model metadata fetches (models.py:208,289; openrouter.py:116)"
+    ],
+    "persistent_ids": [
+      "~/.aider/analytics.json -> uuid (random UUIDv4 generated unconditionally on first launch; sent to PostHog as distinct_id when opted in)"
+    ],
+    "hashing": "No telemetry ID hashing; SHA-256 is used only for OpenRouter OAuth PKCE S256 (onboarding.py:168-170) and SHA-1 only for local LLM request parameter deduplication keys (models.py:1019).",
+    "external_auth_reads": "None (0 reads of ~/.claude, ~/.codex, ~/.cursor, ~/.ssh, ~/.aws, or ~/.config/github-copilot/apps.json; reads only Aider's own ~/.aider/* files, ~/.aider.conf.yml, ~/.env, local git user.name/user.email, and GITHUB_COPILOT_TOKEN from os.environ).",
+    "telemetry_endpoints": [
+      "https://us.i.posthog.com (PostHog capture & $exception autocapture; 10% prompted opt-in / --analytics; project key phc_99T7muzafUMMZX15H8XePbMSreEUzahHbtWjy3l5Qbv)",
+      "https://pypi.org/pypi/aider-chat/json (24h cached startup version check; default ON)",
+      "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json (24h cached pricing JSON when model missing from local metadata; default ON)",
+      "https://openrouter.ai/api/v1/models and https://openrouter.ai/<model_route> (24h cached catalog + HTML scrape fallback for unbundled openrouter/ models)",
+      "https://openrouter.ai/api/v1/auth/key, https://openrouter.ai/auth, https://openrouter.ai/api/v1/auth/keys (OpenRouter onboarding/OAuth only)",
+      "https://api.github.com/copilot_internal/v2/token (Copilot token exchange only when GITHUB_COPILOT_TOKEN env var is set)",
+      "Mixpanel token 6da9a43058a5d1b9f3353153921fb04d present in analytics.py:55 but client instantiation is commented out (dormant)"
+    ],
+    "ip_geo_handling": "No IP suppression or anonymizing proxy; Posthog() is initialized without disable_geoip=True (analytics.py:102-108), exposing client IP to PostHog (us.i.posthog.com) for GeoIP processing (disclosed in privacy.md:21) as well as to PyPI, GitHub, and OpenRouter.",
+    "custom_model_handling": "Verbatim leak vector for locally defined models: _redact_model_name() (analytics.py:195-204) treats any model in local_model_metadata (.aider.model.metadata.json) as known and sends model.name verbatim; unknown '<provider>/<name>' models leak '<provider>/REDACTED'; models without '/' send 'None'; unrecognized openrouter/<route> models are sent in GET paths to openrouter.ai/<route> (models.py:284-289).",
+    "docs_discrepancies": [
+      "analytics.md:113 states default PostHog host is app.posthog.com, whereas analytics.py:57 uses https://us.i.posthog.com",
+      "analytics.md:14 claims analytics are collected only if you agree and opt-in, omitting that --yes-always/Enter/EOF silently auto-opts in the 10% cohort (io.py:866-891)",
+      "analytics.md:79-82 presents sample-analytics.jsonl (--analytics-log) as representative, omitting PostHog super_properties (OS/machine/Python/aider versions), enable_exception_autocapture=True $exception traces, and IP/GeoIP collection",
+      "scripts/my_models.py:89 claims only 'well known' LLMs are recorded, whereas .aider.model.metadata.json models are sent verbatim and slashed unknown models retain '<provider>/REDACTED'",
+      "analytics.md omits unconditional creation of ~/.aider/analytics.json UUID when disabled and omits default-on PyPI/GitHub/OpenRouter fetches unaffected by --no-analytics",
+      "analytics.md:110 mentions only PostHog while mixpanel==5.0.0 and a hardcoded Mixpanel token remain in requirements.in and analytics.py:55"
+    ],
+    "privacy_rating": "D",
+    "one_line_verdict": "PostHog is gated behind a 10% prompt with no competitor auth harvesting, but fails clean privacy standards due to silent --yes-always/default-Yes opt-in bypasses, unconditional UUID persistence even when disabled, missing PostHog GeoIP suppression, exception autocapture and verbatim error strings, verbatim leakage of .aider.model.metadata.json custom models, ignored DO_NOT_TRACK, default-on PyPI/catalog requests, and multiple docs discrepancies."
+  },
+  {
+    "slug": "goose",
+    "platform": "Goose",
+    "group": "B",
+    "repo": "aaif-goose/goose",
+    "sha": "766923df7a16679ee430eac43c9fc9c73caf4b33",
+    "commit_date": "2026-11-25T04:38:40Z",
+    "license": "Apache-2.0",
+    "status": "Active (block/goose redirects here)",
+    "default_state": "Mixed: Backend PostHog session_started is OFF until opt-in (false when unset) and frontend analytics.ts is stubbed to no-op; OTLP and Langfuse are OFF unless configured; HOWEVER default binaries unconditionally phone https://models.dev/api.json on every startup (online-model-meta) and Desktop unconditionally checks GitHub Releases on every launch (UPDATES_ENABLED=true), while CLI/onboarding consent prompts default to true and Desktop TelemetrySettings renders the toggle ON when unset.",
+    "opt_out_controls": [
+      "GOOSE_TELEMETRY_OFF=1 or true (env var overriding config for PostHog session_started)",
+      "GOOSE_TELEMETRY_ENABLED=false (config.yaml or env var)",
+      "CLI: goose configure -> goose settings -> Telemetry",
+      "Desktop UI: Settings -> App -> Privacy -> Anonymous usage data",
+      "OTEL_SDK_DISABLED=true (disables user-configured OTLP)",
+      "GOOSE_DISABLE_AUTO_DOWNLOAD=1/true or disableAutoDownload setting (stops update download only, NOT update check)",
+      "No runtime opt-out for startup models.dev catalog fetch or Desktop startup update check (compile-time flags only: omit online-model-meta / disable-update)"
+    ],
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "posthog::emit_event() explicitly bypasses is_telemetry_enabled() and GOOSE_TELEMETRY_OFF and creates telemetry_installation.json for onboarding_* and telemetry_preference_set events (currently dormant because UI analytics.ts sendEvent is stubbed to no-op)",
+      "Startup https://models.dev/api.json fetch runs unconditionally in default CLI/Desktop/goose-acp builds regardless of GOOSE_TELEMETRY_OFF or GOOSE_TELEMETRY_ENABLED=false",
+      "Desktop startup update check runs unconditionally regardless of telemetry opt-out settings or GOOSE_DISABLE_AUTO_DOWNLOAD"
+    ],
+    "persistent_ids": [
+      "PostHog installation_id: UUIDv4 in <state_dir>/telemetry_installation.json (created when opted in or if emit_event onboarding fires)",
+      "Databricks instance_id: UUIDv4 in <state_dir>/instance_id (only read/sent if GOOSE_DATABRICKS_CLIENT_REQUEST_ID=true, default false)",
+      "Kimi Code device_id: hyphenless UUIDv4 in <config_dir>/kimicode/device_id (only if kimi_code provider used)",
+      "Roaming Ed25519 node key: <config_dir>/roaming_node_key (only if goose roam used)"
+    ],
+    "hashing": "None for device/user IDs (random UUIDv4); Sha256 used only locally for ProviderInventoryService SQLite cache key",
+    "external_auth_reads": "No silent tracking harvest. Explicit/conditional reads only: ~/.config/Claude or Claude Desktop claude_desktop_config.json via user-triggered onboarding import; Claude Code/Codex/Pi session JSONL via explicit import_session; GCP gcloud ADC / AWS / Azure az CLI only when those cloud providers are configured; ~/.claude/agents and ~/.claude/skills for extension/skill discovery.",
+    "telemetry_endpoints": [
+      "https://us.i.posthog.com/capture/ (PostHog analytics, opt-in session_started)",
+      "https://models.dev/api.json (unconditional startup catalog fetch in default builds)",
+      "https://github.com/aaif-goose/goose/releases & https://api.github.com/repos/aaif-goose/goose/releases/latest (unconditional Desktop startup update check + manual CLI goose update)",
+      "User-configured OTEL_EXPORTER_OTLP_ENDPOINT / otel_exporter_otlp_endpoint (OTLP traces/metrics/logs, off by default)",
+      "User-configured LANGFUSE_URL (default http://localhost:3000/api/public/ingestion when keys set, off by default)",
+      "Goose Roam managed iroh relays (*.relay.michaelneale.mesh-llm.iroh.link, only when user runs goose roam)"
+    ],
+    "ip_geo_handling": "No IP suppression on PostHog ($ip: null / disable_geoip absent in posthog.rs:posthog_capture); client IP exposed to us.i.posthog.com (when opted in), models.dev, and GitHub Releases.",
+    "custom_model_handling": "Verbatim: config.get_goose_provider(), config.get_goose_model(), and full enabled extensions array are sent raw in PostHog session_started without canonicalization or sanitization.",
+    "docs_discrepancies": [
+      "CUSTOM_DISTROS.md:93 documents non-existent GOOSE_DISABLE_TELEMETRY=1 (ignored by code; real env var is GOOSE_TELEMETRY_OFF=1)",
+      "TelemetrySettings.tsx:54,61 renders UI switch ON when GOOSE_TELEMETRY_ENABLED is unset, contradicting docs and backend false default",
+      "usage-data.md, PrivacyInfoModal.tsx, and configure.rs claim collection of tool usage counts, session duration, interaction count, and error types, whereas posthog.rs sends lifetime total_sessions/total_tokens/days_since_install/extensions array/setting_mode/setting_max_turns and has disabled error tracking, while omitting installation_id, IP visibility, models.dev startup fetch, and Desktop update check",
+      "environment-variables.md:455 warns legacy OTEL prompt fields bypass OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, contradicting line 457 and current Rust code"
+    ],
+    "privacy_rating": "C",
+    "one_line_verdict": "Opt-in PostHog backend (session_started defaults false when unset), dormant stubbed UI analytics during ACP migration, and zero third-party crash SDKs earn C, held below B by unconditional startup calls to models.dev and GitHub update checks with no runtime opt-out, misleading default-ON UI/CLI consent nudges, a broken GOOSE_DISABLE_TELEMETRY=1 doc flag, missing PostHog IP suppression, verbatim custom model reporting, a dormant onboarding consent bypass, and inaccurate data disclosures."
+  },
+  {
+    "slug": "continue",
+    "platform": "Continue",
+    "group": "B",
+    "repo": "continuedev/continue",
+    "sha": "5522c6f44ca0ac3528b37244818fbfa39b5af470",
+    "commit_date": "2026-07-20T21:00:09-07:00",
+    "license": "Apache-2.0",
+    "status": "Active",
+    "default_state": "Mixed: IDE telemetry SDKs (PostHog/Sentry) removed and CLI OTEL metrics are opt-in (off unless OTEL_EXPORTER_OTLP_* or OTEL_METRICS_EXPORTER is set), but CLI unconditionally sends an unhashed machineId beacon to api.continue.dev on every import/launch, allowAnonymousTelemetry defaults to true in Core/VS Code schemas, and local dev_data logs unconditionally.",
+    "opt_out_controls": [
+      "VS Code telemetry: continue.telemetryEnabled (default true) AND vscode.env.isTelemetryEnabled",
+      "Core config: allowAnonymousTelemetry in config.json / config.yaml (default true)",
+      "CLI OTEL metrics: CONTINUE_METRICS_ENABLED=0 or CONTINUE_CLI_ENABLE_TELEMETRY=0 (when OTEL_* env vars are set)",
+      "CLI auto-update: autoUpdateCli in globalContext (no effect on import-time api.continue.dev/cn/info ping)",
+      "Broken UI control: gui/src/pages/config/sections/UserSettingsSection.tsx renders no telemetry toggle despite VS Code setting deprecation message"
+    ],
+    "do_not_track": "Not respected (0 matches for DO_NOT_TRACK in repository)",
+    "opt_out_bypasses": [
+      "extensions/cli/src/version.ts:65 unconditionally calls getLatestVersion() on import of version.js, sending raw node_machine_id.machineIdSync() to api.continue.dev/cn/info even in --headless mode or with telemetry/autoUpdateCli disabled",
+      "core/config/profile/doLoadConfig.ts:84,353 sets IdeInfoService.uniqueId unconditionally; core/context/providers/WebContextProvider.ts (@web) and core/indexing/docs/crawlers/DefaultCrawler.ts (docs crawling) send uniqueId in headers to proxy-server-blue-l6vsfbzhba-uw.a.run.app even when allowAnonymousTelemetry is false",
+      "core/data/log.ts (DataLogger.logDevData) and core/data/devdataSqlite.ts (DevDataSqliteDb) always write ~/.continue/dev_data/ regardless of allowAnonymousTelemetry"
+    ],
+    "persistent_ids": [
+      "CLI version check id & getUniqueId(): node_machine_id.machineIdSync() (overridable only for getUniqueId via CONTINUE_USER_ID)",
+      "VS Code uniqueId: vscode.env.machineId (webview fallback uses raw node_machine_id.machineIdSync() when machineId is 'someValue.machineId')",
+      "IntelliJ uniqueId: first non-null NetworkInterface hardware MAC address formatted %02X-...",
+      "CLI OTEL (opt-in): os.hostname(), optional ACCOUNT_UUID and ORGANIZATION_ID"
+    ],
+    "hashing": "None for CLI node_machine_id.machineIdSync(), VS Code webview fallback machineIdSync(), and IntelliJ MAC address (raw uppercase %02X-...); only VS Code's built-in vscode.env.machineId is VS Code-hashed.",
+    "external_auth_reads": "Reads ~/.claude/settings.json and <cwd>/.claude/settings(.local).json for Claude Code hook compatibility (extensions/cli/src/hooks/hookConfig.ts), <cwd>/.claude/skills for skills (extensions/cli/src/util/loadMarkdownSkills.ts), OS CA store (core/util/ca.ts), and AWS fromNodeProviderChain (~/.aws/credentials) only when Bedrock/SageMaker is configured; zero reads of other tools' credentials for tracking.",
+    "telemetry_endpoints": [
+      "https://api.continue.dev/cn/info?id=<machineId> (unconditional CLI startup version ping)",
+      "https://proxy-server-blue-l6vsfbzhba-uw.a.run.app/web (Cloud Run proxy for @web)",
+      "https://proxy-server-blue-l6vsfbzhba-uw.a.run.app/crawl (Cloud Run proxy for docs crawling)",
+      "https://api.continue.dev/ (CLI remote default config, syncSecrets fallback, cn checks, and --id remote agent errors/metadata)",
+      "User-configured OTEL_EXPORTER_OTLP_METRICS_ENDPOINT / OTEL_EXPORTER_OTLP_ENDPOINT/v1/metrics / localhost:4318/v1/metrics (opt-in CLI OTEL only)",
+      "User-configured config.data HTTP destinations (opt-in only)"
+    ],
+    "ip_geo_handling": "No client-side IP/GeoIP API calls, but direct HTTPS calls to api.continue.dev/cn/info and closed Cloud Run proxy proxy-server-blue-l6vsfbzhba-uw.a.run.app expose client IP without client-side suppression; CLI OTEL exports plaintext os.hostname().",
+    "custom_model_handling": "CLI OTEL (when opted in) exports verbatim model names on cost, token usage, and response time metrics without hashing or filtering; local DevData/SQLite and opt-in user data: noCode payloads retain modelProvider and modelName.",
+    "docs_discrepancies": [
+      "README.md:31 claims anonymous telemetry was removed in 2.0.0 despite unconditional CLI machineId ping to api.continue.dev/cn/info and unconditional uniqueId headers to Cloud Run proxy",
+      "extensions/vscode/package.json:89-95 points users to a 'Telemetry > Allow Anonymous Telemetry' UI toggle removed from gui/src/pages/config/sections/UserSettingsSection.tsx",
+      "docs/docs.json:844-849 redirects /telemetry to deleted /customize/telemetry; docs/guides/running-continue-without-internet.mdx:7 still references turning off telemetry to stop PostHog",
+      "extensions/cli/spec/otlp-metrics.md documents OTEL_METRICS_INCLUDE_SESSION_ID which extensions/cli/src/telemetry/telemetryService.ts never emits"
+    ],
+    "privacy_rating": "D",
+    "one_line_verdict": "PostHog and Sentry were stripped for 2.0.0 and CLI OTEL is strictly opt-in, but CLI unconditionally phones home to api.continue.dev with a raw machineId on every launch, IntelliJ/VS Code leak persistent MAC/machineId headers to Continue's Cloud Run proxy even when telemetry is disabled, DO_NOT_TRACK is ignored, and the UI opt-out toggle referenced by VS Code settings and docs was deleted."
+  },
+  {
+    "slug": "kilocode",
+    "platform": "Kilo Code",
+    "group": "B",
+    "repo": "https://github.com/Kilo-Org/kilocode",
+    "sha": "b12e612bd3ad9c4073ea57caaf0197fad7f98d63",
+    "commit_date": "2026-11-24T14:57:22-05:00",
+    "license": "MIT",
+    "status": "Active",
+    "default_state": "ON by default: PostHog product telemetry enabled via experimental.openTelemetry=true (packages/core/src/v1/config/config.ts:352-354) and KiloSessions cloud transcript/diff ingest enabled whenever Kilo auth exists (packages/opencode/src/kilo-sessions/kilo-sessions.ts:281-315,776-953). Optional OTLP and SessionExport (enabled=false) are OFF by default.",
+    "opt_out_controls": [
+      "Global config experimental.openTelemetry: false (packages/core/src/v1/config/config.ts:352-354)",
+      "Env var KILO_TELEMETRY_LEVEL=off|0|false (any value other than all|on|true|1; packages/kilo-telemetry/src/telemetry.ts:147-151)",
+      "VS Code 'telemetry.telemetryLevel' != 'all' (KILO_TELEMETRY_HOST_DISABLED=1) and Kilo Settings > About Kilo Code 'Enable telemetry' switch (packages/kilo-vscode/webview-ui/src/components/settings/AboutKiloCodeTab.tsx:268-289)",
+      "JetBrains Settings > Tools > Kilo Code > Advanced 'Send usage data' toggle (packages/kilo-jetbrains/frontend/src/main/kotlin/ai/kilocode/client/settings/AdvancedSettingsUi.kt:50-54)",
+      "Env var KILO_DISABLE_SESSION_INGEST=1 (undocumented for users; disables https://ingest.kilosessions.ai auto-sync)",
+      "Env vars KILO_DISABLE_AUTOUPDATE=1 / autoupdate=false and KILO_DISABLE_MODELS_FETCH=1"
+    ],
+    "do_not_track": "Not supported / ignored in runtime code (documented as unsupported in packages/kilo-docs/pages/getting-started/settings/product-telemetry.md:73).",
+    "opt_out_bypasses": [
+      "Identity.getMachineId() unconditionally generates and persists UUID v4 telemetry-id even when telemetry is disabled (packages/kilo-telemetry/src/telemetry.ts:141); VS Code and JetBrains pass machine IDs unconditionally.",
+      "Persistent machineId is sent via X-KILOCODE-MACHINEID on Kilo Gateway LLM requests (packages/opencode/src/session/llm/request.ts:183-189,261) and to https://auto-routing.kiloapps.io (packages/opencode/src/session/llm.ts:117,126) regardless of telemetry opt-out.",
+      "KiloSessions automatically uploads full prompts, replies, tool outputs, diffs, gitUrl, gitBranch, and models to https://ingest.kilosessions.ai on Kilo-authenticated sessions regardless of experimental.openTelemetry=false, KILO_TELEMETRY_LEVEL=off, KILO_DISABLE_SHARE=1, or non-Kilo model provider (packages/opencode/src/kilo-sessions/kilo-sessions.ts:281-315,776-953,1878-1929).",
+      "VS Code TelemetryProxy.capture and JetBrains KiloTelemetryService still forward UI events to localhost CLI /telemetry/capture when only Kilo's experimental.openTelemetry=false is set (dropped server-side at Client.capture)."
+    ],
+    "persistent_ids": [
+      "telemetry-id (UUID v4 in <Global.Path.data>/telemetry-id, or KILO_MACHINE_ID from vscode.env.machineId / JetBrains <system>/kilo/machine-id)",
+      "Plaintext Kilo account email used as PostHog distinct_id via /api/profile and cached in telemetry-profile.json",
+      "kilocodeOrganizationId",
+      "External Conda aauClientToken extracted from ~/.conda/aau_token + 'conda info --json --offline' (when telemetry enabled)"
+    ],
+    "hashing": "None for telemetry-id, email distinct_id, or Conda aauClientToken (sent plaintext to PostHog; $create_alias links telemetry-id to plaintext email). SHA-256 used only locally for telemetry-profile.json token cache key and telemetry-alias-<sha256> dedup marker filenames.",
+    "external_auth_reads": [
+      "Telemetry join key: ~/.conda/aau_token + 'conda info --json --offline' when telemetry enabled (packages/kilo-telemetry/src/conda.ts:8-49)",
+      "Legacy Kilo migration: ~/.kilocode/cli/config.json (packages/kilo-gateway/src/auth/legacy-migration.ts:11), JetBrains ~/.kilocode/secrets.json & globalStorage/ (LegacyV5Sources.kt:13-17), user-triggered Roo import (packages/kilo-vscode/src/roo-import/service.ts:12-58)",
+      "Compat/Opt-in: ~/.claude/CLAUDE.md & ~/.claude/skills/ (CLI default on unless KILO_DISABLE_CLAUDE_CODE=1; VS Code/JetBrains default off), ~/.claude/ide/*.lock (TUI editor lock), opt-in ClaudeMigration (~/.claude.json), explicit /resume-claude & /resume-codex (~/.claude/projects/, ~/.codex/sessions/)"
+    ],
+    "telemetry_endpoints": [
+      "https://us.i.posthog.com (posthog-node product telemetry; us.i.posthog.com / us-assets.i.posthog.com via /ingest on kilo-docs)",
+      "https://ingest.kilosessions.ai (default-active KiloSessions transcript/diff ingest & WebSocket relay for Kilo-authenticated sessions)",
+      "https://api.kilo.ai (/api/profile, /api/user, /api/users/notifications)",
+      "https://ai-gateway.kilo.ai/api/v1 & https://auto-routing.kiloapps.io (carry X-KILOCODE-MACHINEID / machineId even when telemetry off)",
+      "wss://events.kiloapps.io (Kilo Event Service WebSocket)",
+      "https://supermassive-black-hole.kiloapps.io/v1/session-export/batch (hard-disabled enabled=false in source)",
+      "User-configured OTEL_EXPORTER_OTLP_ENDPOINT (/v1/logs, /v1/traces; opt-in only)",
+      "https://models.dev/api.json, https://registry.npmjs.org/@kilocode%2fcli/<channel>, GitHub Releases / Brew / Chocolatey / Scoop update/download URLs"
+    ],
+    "ip_geo_handling": "PostHog client explicitly configures disableGeoip: false (packages/kilo-telemetry/src/client.ts:22), enabling server-side IP/GeoIP resolution on all PostHog events. No IP suppression/anonymization on direct HTTPS requests to Kilo endpoints.",
+    "custom_model_handling": "Verbatim custom/private modelId and providerID/apiProvider strings transmitted in PostHog LLM Completion (processor.ts:143-144), Feedback Submitted (feedback.ts:41-42; feedback-payload.ts:29-30), Indexing events (indexing.ts:146-203), and JetBrains session/model events (SessionController.kt:3307-3313), linked to plaintext email/telemetry-id/aauClientToken. Auto-routing sends client model list + prompts/tools to auto-routing.kiloapps.io.",
+    "docs_discrepancies": [
+      "PRIVACY.md (2025-03-07) states Kilo does not have access to or store code, files, prompts, or AI requests, omitting PostHog telemetry, plaintext email identification, telemetry-id, ~/.conda/aau_token, and automatic KiloSessions uploads to ingest.kilosessions.ai.",
+      "product-telemetry.md:73 wrongly states KILO_TELEMETRY_LEVEL=all overrides experimental.openTelemetry=false (Telemetry.level uses && so global config false wins).",
+      "product-telemetry.md:17,34,40 wrongly state VS Code has no Kilo toggle and ignores experimental.openTelemetry=false / KILO_TELEMETRY_LEVEL=off (VS Code ships About Kilo Code 'Enable telemetry' switch and honors both).",
+      "product-telemetry.md:19,88-92 wrongly state JetBrains telemetry is 'currently always on' (JetBrains ships Settings > Tools > Kilo Code > Advanced 'Send usage data' toggle and honors CLI config/env).",
+      "User docs omit KILO_DISABLE_SESSION_INGEST / ingest.kilosessions.ai auto-sync, ~/.conda/aau_token reading, plaintext email aliasing, and unconditional machine-ID transmission."
+    ],
+    "privacy_rating": "F",
+    "one_line_verdict": "Severe red flags: PostHog telemetry with GeoIP, raw plaintext email aliasing, and ~/.conda/aau_token harvesting is ON by default (ignoring DO_NOT_TRACK), persistent machine IDs transmit on Gateway/auto-router calls even when opted out, Kilo-authenticated sessions automatically upload full prompts, tool outputs, code diffs, gitUrl, and gitBranch to ingest.kilosessions.ai bypassing experimental.openTelemetry=false, KILO_TELEMETRY_LEVEL=off, and KILO_DISABLE_SHARE=1, and root PRIVACY.md directly contradicts the code by claiming Kilo has no access to or storage of code, commands, or prompts."
+  },
+  {
+    "slug": "pi",
+    "platform": "Pi",
+    "group": "B",
+    "repo": "earendil-works/pi",
+    "sha": "c11a73bfba1310dc4075ad836254ea87003f409b",
+    "commit_date": "2026-11-25T00:53:26+01:00",
+    "license": "MIT",
+    "status": "Active (badlogic/pi-mono redirects here)",
+    "default_state": "Mixed / Light ON by default: zero third-party analytics/crash/OTEL SDKs and no usage/prompt telemetry, but enableInstallTelemetry defaults to true (sending GET pi.dev/api/report-install on first install/upgrade and PI_ATTRIBUTION headers to OpenRouter/NVIDIA/OpenCode), plus default-ON pi.dev/api/latest-version checks, credential-gated pi.dev/api/models/providers/<id> catalog fetches (interactive & RPC), npm/git package update checks, missing fd/rg GitHub downloads, and packaged p2-mac Sparkle appcast polling; experimental enableAnalytics and apps/p2 local SQLite telemetry default OFF.",
+    "opt_out_controls": [
+      "/settings -> Install telemetry: false, settings.json enableInstallTelemetry: false, or PI_TELEMETRY=0|false|no (stops report-install and coding-agent PI_ATTRIBUTION only)",
+      "PI_SKIP_VERSION_CHECK=1 (stops pi.dev/api/latest-version only; no /settings toggle)",
+      "--offline or PI_OFFLINE=1|true|yes (master startup network killswitch stopping report-install, latest-version, pi.dev model catalogs, package update checks, and fd/rg downloads)",
+      "SDK callers of @earendil-works/pi-agent-core / @earendil-works/pi-durable must explicitly pass identity: { attribution: null }"
+    ],
+    "do_not_track": false,
+    "opt_out_bypasses": [
+      "PI_TELEMETRY=0 and /settings Install telemetry=false leave pi.dev/api/latest-version, credential-gated pi.dev/api/models/providers/<configured-provider>, detailed OS/runtime User-Agent headers, npm/git package checks, fd/rg downloads, and p2-mac Sparkle polling active",
+      "Standalone @earendil-works/pi-agent-core (agent-loop.ts:41,415) and @earendil-works/pi-durable (harness.ts:194,200-204) default attribution to PI_ATTRIBUTION without consulting PI_TELEMETRY or settings.json",
+      "PI_OFFLINE=0 or PI_OFFLINE=false fails to trigger offlineMode in main.ts:610 / package-manager.ts:85 / tools-manager.ts:16 while still suppressing startup catalog/version/install-telemetry calls in interactive-mode.ts:1246,1521, version-check.ts:55, and model-runtime.ts:248"
+    ],
+    "persistent_ids": [
+      "No persistent telemetry ID transmitted by default (report-install sends only ?version=<v> + User-Agent)",
+      "~/.pi/agent/settings.json -> deviceId (randomUUID created lazily on first provider login; sent only as ext_agent_host_id=urn:uuid:<deviceId> in OpenAI ChatGPT OAuth; stripped from /bug)",
+      "~/.pi/agent/settings.json -> trackingId (randomUUID created only under PI_EXPERIMENTAL=1 when user opts into enableAnalytics; dormant/unwired; stripped from /bug)",
+      "apps/p2 <data>/device.json (randomUUID for P2 login/backup) and radius.json serverId (randomUUID for Radius tunneling)"
+    ],
+    "hashing": "None for telemetry IDs; zero unsalted cross-provider user/repo/skill hashing.",
+    "external_auth_reads": "None from competitor agents (zero reads of ~/.claude, ~/.codex, ~/.cursor, ~/.opencode, ~/.gemini, ~/.windsurf, or ~/.aider). Reads own ~/.pi/* dirs, ~/.agents/skills + ancestor .agents/skills, project/global AGENTS*.md/CLAUDE.md (unless --no-context-files), and standard provider credentials only when used (GOOGLE_APPLICATION_CREDENTIALS or ~/.config/gcloud/application_default_credentials.json for google-vertex; HF_TOKEN or ~/.cache/huggingface/token for /llama; gh auth status for /share gist fallback).",
+    "telemetry_endpoints": [
+      "https://pi.dev/api/report-install?version=<v> (interactive install/upgrade beacon, default ON)",
+      "https://pi.dev/api/latest-version (interactive startup version check, default ON)",
+      "https://pi.dev/api/models/providers/<id>?types=chat,image,classifier (interactive & RPC catalog overlay for authenticated built-in providers only, default ON)",
+      "https://pkg.earendil.com/-/apps/pi-mac/nightly/appcast.xml (packaged apps/p2-mac Sparkle update feed, default ON)",
+      "https://github.com/sharkdp/fd/releases/* & https://github.com/BurntSushi/ripgrep/releases/* (automatic binary download if fd/rg missing, default ON)",
+      "Configured npm registry / git remotes (interactive startup package update checks, default ON)",
+      "https://radius.pi.dev/v1/{bug-reports,artifacts} (manual /bug and /share uploads only)",
+      "https://pi.dev/api/installer/releases & https://pi.dev/oauth & https://pi.dev/session/ (manual pi update, MCP OAuth metadata, /share viewer link)",
+      "Configured LLM providers receiving PI_ATTRIBUTION headers (OpenRouter, NVIDIA NIM, OpenCode) when enableInstallTelemetry is true"
+    ],
+    "ip_geo_handling": "No IP suppression or anonymizing proxy; direct HTTPS requests to pi.dev, pkg.earendil.com, radius.pi.dev, and github.com expose client IP to closed-source backends.",
+    "custom_model_handling": "Clean toward Pi backend: model-runtime.ts wraps only built-in providers, so private/custom models.json provider names and model slugs are never sent to pi.dev. To the configured inference endpoint itself, Pi sends detailed User-Agent by default (and x-client-request-id/prompt_cache_key for openai-responses; sendSessionAffinityHeaders defaults false on non-OpenRouter openai-completions/anthropic-messages).",
+    "docs_discrepancies": [
+      "first-time-setup.ts:59 (PI_EXPERIMENTAL=1) advertises a nonexistent /privacy command ('You can observe what is shared using /privacy')",
+      "args.ts:469 (--help), settings-selector.ts:577 (/settings), and settings-schema.ts:301 omit that PI_TELEMETRY / enableInstallTelemetry also gates PI_ATTRIBUTION provider headers (disclosed in docs/settings.md:171 and docs/environment-variables.md:87)",
+      "Docs omit that pi.dev/api/models/providers/<id> selectively runs only for authenticated built-in providers (leaking active AI provider selection to pi.dev), omit detailed User-Agent persistence when PI_TELEMETRY=0, and omit packaged p2-mac Sparkle appcast polling"
+    ],
+    "privacy_rating": "C",
+    "one_line_verdict": "Minimal telemetry footprint meriting C (zero analytics/crash/OTEL SDKs, zero persistent telemetry IDs, zero custom-model leaks, zero competitor auth harvesting, and a clean --offline switch), held below B/A because DO_NOT_TRACK is ignored, PI_TELEMETRY=0 leaves pi.dev/api/latest-version, credential-gated pi.dev/api/models/providers/<id> (leaking configured AI providers), detailed OS/runtime User-Agent, agent-core/durable attribution, and p2-mac Sparkle polling active without IP suppression, and UI/CLI docs misstate controls including a nonexistent /privacy command."
+  },
+  {
+    "slug": "hermes",
+    "platform": "Hermes",
+    "group": "B",
+    "repo": "NousResearch/hermes-agent",
+    "sha": "a39b00bf378f0a9ca6e8e8ba27af4ca4bf8cd86d",
+    "commit_date": "2026-11-24T23:05:06-06:00",
+    "license": "MIT",
+    "status": "Active",
+    "default_state": "OFF by default (Opt-In). telemetry.shared_metrics.enabled=false and .send=false; monitoring.gateway_health_export.enabled=false and monitoring.export.otlp.enabled=false; CUA_DRIVER_RS_TELEMETRY_ENABLED forced to 0; PHOTON_TELEMETRY=false; Electron Linux crashReporter uploadToServer=false. Non-telemetry defaults ON: passive update checks (updates.check=true), models.dev/openrouter catalog fetches, and Desktop first-run anonymous trial minting on unconfigured local installs.",
+    "opt_out_controls": "Separate profile-scoped enabled & send booleans in $HERMES_HOME/config.yaml; `hermes setup telemetry`; first-run CLI/TUI/Desktop strip/Web banner prompts; Desktop Settings -> Safety -> Privacy toggle; `telemetry.shared_metrics.send` fails closed if enabled=false; shared_metrics endpoint config-only (not env-overridable); computer_use.cua_telemetry=false.",
+    "do_not_track": "NOT honored in core telemetry (shared_metrics / monitoring / Desktop / Web). Only mentioned in 3rd-party plugin-catalog/*.yaml descriptions.",
+    "opt_out_bypasses": "No silent transmission bypasses when opted out (metrics.sqlite3/install_id not created when off; pre-consent pending_installs/ receipts deleted unreported on next start; Desktop in-memory preConsent onboarding queue dropped on No thanks). Caveat: OFFER_VERSION=2 causes one re-prompt for legacy opt-outs lacking offer_version=2.",
+    "persistent_ids": "1) shared_metrics install_id (UUIDv4 in metrics.sqlite3, profile-scoped, ONLY created when opted in; reset by deleting telemetry/shared_metrics); 2) monitoring.install_id (UUIDv4 in config.yaml, ONLY minted when OTLP monitoring enabled); 3) core $HERMES_ROOT/install_id (uuid4 hex, local /api/status & hosted-room routing only, never sent in telemetry).",
+    "hashing": "shared_metrics transmits the raw UUIDv4 install_id verbatim without hashing or salt rotation (intentional 2026-08-27 design decision in relay-shared-metrics.md Appendix A.2 for indefinite longitudinal profile correlation). OTLP monitoring hashes monitoring.install_id via unsalted truncated sha256:<24-hex> (`service.instance.id`). Desktop hashes local profile keys in renderer-crash-pending.json via unsalted sha256[:16].",
+    "external_auth_reads": "auth.adopt_external_logins defaults to TRUE: automatically reads/refreshes ~/.claude/.credentials.json + macOS Keychain 'Claude Code-credentials' (also probed in _has_any_provider_configured when non-default model set) and ~/.codex/auth.json; ~/.qwen/oauth_creds.json read/refreshed for qwen-oauth WITHOUT checking adopt_external_logins; gh auth token run for GitHub API rate-limit relief on passive update checks; interactive setup checks .openclaw/.claude/.codex/.cursor dirs; explicit session import reads ~/.claude/projects & ~/.codex/sessions. External auth is NEVER sent to telemetry.",
+    "telemetry_endpoints": "https://telemetry.nousresearch.com/v1/telemetry (HTTPS POST JSON/gzip, opt-in daily shared_metrics); operator-configured monitoring.export.otlp.endpoint (opt-in OTLP/HTTP, no default); https://portal.nousresearch.com/api/diagnostics/upload-url + signed S3 PUT (manual opt-in debug share --nous). Non-telemetry endpoints: https://portal.nousresearch.com/api/anonymous/{create,token}, api.github.com / R2 update feeds, models.dev/api.json, openrouter.ai/api/v1/models.",
+    "ip_geo_handling": "No client-side GeoIP lookups and no IP-suppression headers; direct client HTTPS POSTs expose client source IP to telemetry.nousresearch.com (and portal/update/catalog hosts).",
+    "custom_model_handling": "custom/ollama/vllm/llamacpp/lmstudio/loopback providers, _LOCATION_MODEL paths/IPs/ARNs, and unknown Azure deployments collapse to 'custom'. Gap: non-Azure built-in providers overridden with a custom model.base_url (e.g. anthropic/openrouter/providers.openai) or org fine-tunes export verbatim lowercased model IDs (<=256 chars) when opted in, because model_call_fields ignores base_url and model_metric_name skips public_model_ids() outside Azure.",
+    "docs_discrepancies": "1) website/docs/reference/faq.md:58 falsely claims 'Hermes Agent does not collect telemetry, usage data, or analytics' and API calls go only to the configured LLM provider, contradicting relay-shared-metrics.md and the shipped opt-in telemetry system; 2) cli-config.yaml.example:2262 points to nonexistent docs/observability/relay-shared-metrics.md; 3) website/docs/getting-started/official-domains.md omits telemetry.nousresearch.com; 4) website/docs/user-guide/security.md omits qwen-oauth (~/.qwen/oauth_creds.json) under Borrowed CLI logins.",
+    "privacy_rating": "A",
+    "one_line_verdict": "Strict opt-in privacy architecture (shared metrics, OTLP, PHOTON_TELEMETRY, and forced CUA_DRIVER_RS_TELEMETRY_ENABLED=0 all OFF by default, fail-closed, zero install ID or DB created when off, unsent pending_installs purged on launch, zero 3rd-party analytics SDKs), with remaining caveats limited to stale FAQ wording and opt-in-only/external-auth items (verbatim non-Azure custom/fine-tuned model IDs, raw persistent profile UUID + IP when enabled, ignored DO_NOT_TRACK, default-on external CLI auth adoption)."
+  }
+]
