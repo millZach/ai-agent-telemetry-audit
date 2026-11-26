@@ -6,6 +6,7 @@ A read-only, line-by-line static source audit of telemetry, crash reporting, ana
 
 ## Quick Navigation
 
+- [**Closed-Source 10-App Sandbox Audit**](./closed-source-report.md) — Live Docker sandbox tests (default cold boot vs. opt-out) across Claude Code, Codex Desktop, Cursor, VS Code, Warp, Obsidian, Discord, Slack, Spotify, and Chrome ([ranked scorecard](./scorecard-closed-4x5.png)).
 - [**Full Comparative Forensic Report**](./report.md) — Deep-dive comparison matrix, exact endpoints, data catalogs, policy mismatches, and per-tool opt-out instructions.
 - [**Executive Summary**](./summary.md) — Condensed rating matrix and key takeaways.
 - [**Per-Platform Audits (`audits/`)**](./audits/) — 25 standalone reports with exact `file:line` source citations.
